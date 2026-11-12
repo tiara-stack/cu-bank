@@ -1,11 +1,9 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { cases } from '../data/cases';
+import { cases } from '../data/scenarios/scenario-06-bill-payment-rejected';
 import { test } from '../support/fixtures';
 import { expectTransactionRejected } from '../support/rejections';
 import { enterAmount, expectAccount, login } from '../support/ui';
-
-const billPaymentCases = cases.filter((item) => item.tags.includes('@bill-payment-rejection'));
 
 test.describe('Scenario 6', () => {
   test.beforeEach(({ page: nativePage, accountState }) =>
@@ -17,7 +15,7 @@ test.describe('Scenario 6', () => {
     }).pipe(Effect.scoped, Effect.runPromise),
   );
 
-  for (const example of billPaymentCases.filter((item) => item.tags.includes('@bill-category-selected'))) {
+  for (const example of cases.filter((item) => item.tags.includes('@bill-category-selected'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(
@@ -51,7 +49,7 @@ test.describe('Scenario 6', () => {
     });
   }
 
-  for (const example of billPaymentCases.filter((item) => item.tags.includes('@bill-category-required'))) {
+  for (const example of cases.filter((item) => item.tags.includes('@bill-category-required'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(

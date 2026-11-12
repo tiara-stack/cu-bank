@@ -1,10 +1,10 @@
 import { Collection } from 'effect-mongodb';
 import { Effect, Option } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { cases } from '../data/cases';
+import { cases } from '../data/scenarios/scenario-08-registration-journey';
 import { test, expect } from '../support/fixtures';
 import { expectAccount, expectHistory, expectSignedOut, login, register, transact } from '../support/ui';
-for (const example of cases.filter((item) => item.tags.includes('@registration-journey'))) {
+for (const example of cases) {
   test.describe(example.id, () => {
     test.use({ accountState: example.accountState });
     test.effect(

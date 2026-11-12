@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { cases } from '../data/cases';
+import { cases } from '../data/scenarios/scenario-05-transfer';
 import { test } from '../support/fixtures';
 import { expectTransactionRejected } from '../support/rejections';
 import { enterAmount, expectAccount, login, transact } from '../support/ui';
@@ -15,7 +15,7 @@ test.describe('Scenario 5', () => {
       yield* transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2);
     }).pipe(Effect.scoped, Effect.runPromise),
   );
-  for (const example of cases.filter((item) => item.tags.includes('@transfer-rejection'))) {
+  for (const example of cases) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(

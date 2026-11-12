@@ -1,6 +1,19 @@
 # CU Bank Playwright tests
 
-TypeScript browser tests for all 49 cases in `CU_Bank_Test_Cases_8_Scenarios.xlsx`, sheet `Test_Cases`. Each case is grouped under its workbook ID. Typed tags in [data/cases.ts](data/cases.ts) select workflow groups and interaction variants, and are passed through to Playwright. The eight demo cases have the `@demo` tag. Preconditions, expected messages, and execution notes are in the same case data.
+TypeScript browser tests for all 49 cases in `CU_Bank_Test_Cases_8_Scenarios.xlsx`, sheet `Test_Cases`. Each case is grouped under its workbook ID. Case definitions contain the inputs, account preconditions, expected messages, execution notes, and typed tags defined by [TestCase](data/test-case.ts). Tags select interaction variants and are passed through to Playwright. The eight demo cases have the `@demo` tag.
+
+## Scenario files
+
+| Scenario | Case data | Spec |
+| --- | --- | --- |
+| 1. Registration rejected | [Cases](data/scenarios/scenario-01-registration.ts) | [Spec](tests/scenario-01-registration.spec.ts) |
+| 2. Login rejected | [Cases](data/scenarios/scenario-02-login.ts) | [Spec](tests/scenario-02-login.spec.ts) |
+| 3. Deposit rejected | [Cases](data/scenarios/scenario-03-deposit.ts) | [Spec](tests/scenario-03-deposit.spec.ts) |
+| 4. Withdrawal rejected | [Cases](data/scenarios/scenario-04-withdrawal.ts) | [Spec](tests/scenario-04-withdrawal.spec.ts) |
+| 5. Transfer rejected | [Cases](data/scenarios/scenario-05-transfer.ts) | [Spec](tests/scenario-05-transfer.spec.ts) |
+| 6. Bill payment rejected | [Cases](data/scenarios/scenario-06-bill-payment-rejected.ts) | [Spec](tests/scenario-06-bill-payment-rejected.spec.ts) |
+| 7. Bill payment succeeds | [Cases](data/scenarios/scenario-07-bill-payment-success.ts) | [Spec](tests/scenario-07-bill-payment-success.spec.ts) |
+| 8. Registration-to-transfer journey | [Cases](data/scenarios/scenario-08-registration-journey.ts) | [Spec](tests/scenario-08-registration-journey.spec.ts) |
 
 ## Setup
 
@@ -53,7 +66,7 @@ In effect-playwright 0.9.0, Playwright reports test declaration locations in the
 
 Playwright starts the existing React frontend on `http://localhost:3000`. Global setup starts the existing Express backend on `http://localhost:4000` with a temporary MongoDB database and a generated test JWT secret. Leave both ports available. These URLs match the application's API URLs and CORS configuration.
 
-Each case declares its own `accountState` in [data/cases.ts](data/cases.ts). Reusable states in [data/account-state.ts](data/account-state.ts) list the accounts to create, credentials, starting balances, setup deposits, and account IDs that must be absent. A case can supply its own state object or override a reusable state.
+Each case declares its own `accountState` in its [scenario data file](data/scenarios). Reusable states in [data/account-state.ts](data/account-state.ts) list the accounts to create, credentials, starting balances, setup deposits, and account IDs that must be absent. A case can supply its own state object or override a reusable state.
 
 The fixture clears the temporary database, creates each required account through the UI, and applies its setup deposits through the UI. Each setup account uses a separate browser context. Setup checks the credentials by logging in and verifies the balance, exact history, account count, and required absences before running the case's hooks and actions. The report includes the original workbook precondition and an `account-preconditions` attachment. The measured test starts in its own fresh browser context.
 
@@ -61,7 +74,7 @@ Registration and login cases prepare the existing account A. ZERO gives A a zero
 
 One worker runs the fixed workbook accounts sequentially. Global setup checks the worker count. Backend and temporary database cleanup runs at the end, including after failed assertions. Database operations use the URI created for this run.
 
-Each scenario has its own spec file. Specs select cases by workflow tags such as `@withdrawal-rejection` and `@registration-journey`. Bill-payment rejection cases use `@bill-category-selected` or `@bill-category-required` to select the interaction. Rejection helpers receive an explicit message or required-field expectation. Each case uses its own Playwright scope to apply `test.use({ accountState: example.accountState })`. Shared login and successful prefix steps run in `beforeEach` hooks using that case's starting balance and history. Case loops supply input variants within that scenario. Browser actions use ordinary functions and the application's `cid` selectors. Successful deposits and withdrawals are verified before later scenario steps. Rejection tests compare all persisted account documents after refresh, including credentials and histories. Transfer cases also open a separate recipient browser context. Success cases check transaction targets, amounts, resulting balances, timestamps, and persistence. Direct database access clears fixtures and verifies persistence. All application HTTP requests originate from browser actions.
+Each scenario has a numbered spec file that imports its own case definitions directly. Workflow tags such as `@withdrawal-rejection` and `@registration-journey` support CLI filtering. Bill-payment rejection cases use `@bill-category-selected` or `@bill-category-required` to select the interaction. Rejection helpers receive an explicit message or required-field expectation. Each case uses its own Playwright scope to apply `test.use({ accountState: example.accountState })`. Shared login and successful prefix steps run in `beforeEach` hooks using that case's starting balance and history. Case loops supply input variants within that scenario. Browser actions use ordinary functions and the application's `cid` selectors. Successful deposits and withdrawals are verified before later scenario steps. Rejection tests compare all persisted account documents after refresh, including credentials and histories. Transfer cases also open a separate recipient browser context. Success cases check transaction targets, amounts, resulting balances, timestamps, and persistence. Direct database access clears fixtures and verifies persistence. All application HTTP requests originate from browser actions.
 
 ## Results
 

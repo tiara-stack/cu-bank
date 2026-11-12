@@ -1,7 +1,7 @@
 import { Collection } from 'effect-mongodb';
 import { Effect, Option } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { cases } from '../data/cases';
+import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
 import { test, expect } from '../support/fixtures';
 import { expectAccount, expectHistory, login } from '../support/ui';
 test.beforeEach(({ page: nativePage, accountState }) =>
@@ -23,7 +23,7 @@ const categories: Record<
   'Electric Charge': { cid: 'b2', target: 'electric' },
   'Phone Charge': { cid: 'b3', target: 'phone' },
 };
-for (const example of cases.filter((item) => item.tags.includes('@bill-payment-success'))) {
+for (const example of cases) {
   test.describe(example.id, () => {
     test.use({ accountState: example.accountState });
     test.effect(
