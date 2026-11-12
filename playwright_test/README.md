@@ -1,6 +1,6 @@
 # CU Bank Playwright tests
 
-TypeScript browser tests for all 49 cases in `CU_Bank_Test_Cases_8_Scenarios.xlsx`, sheet `Test_Cases`. Each case is grouped under its workbook ID. The eight demo cases have the `@demo` tag. Preconditions, expected messages, and execution notes are in [data/cases.ts](data/cases.ts).
+TypeScript browser tests for all 49 cases in `CU_Bank_Test_Cases_8_Scenarios.xlsx`, sheet `Test_Cases`. Each case is grouped under its workbook ID. Typed tags in [data/cases.ts](data/cases.ts) select workflow groups and interaction variants, and are passed through to Playwright. The eight demo cases have the `@demo` tag. Preconditions, expected messages, and execution notes are in the same case data.
 
 ## Setup
 
@@ -30,6 +30,8 @@ Run these commands inside `playwright_test`.
 npm test
 npm run test:demo
 npm test -- --grep S5-TC01
+npm test -- --grep @bill-category-required
+npm test -- --grep @bill-payment-rejection
 npm run test:headed
 npm run test:ui
 npm run test:list
@@ -41,7 +43,9 @@ npm run report
 
 Browser helpers use [effect-playwright](https://github.com/Jobflow-io/effect-playwright) 0.9.0 with Effect 4. The custom fixtures are extended with Playwright and exported through `makeMethods(fixtures)`, following the library's custom-fixture integration. Specs use `test.effect` and obtain the active page and browser through `yield* Playwright.Page` and `yield* Playwright.Browser`. The integration provides the Effect runtime, test scope, and timeout interruption during fixture teardown. Native setup hooks and fixture callbacks bridge their Effect programs with `Effect.scoped` and `Effect.runPromise`.
 
-Additional browser contexts are acquired through effect-playwright and close when their Effect scope ends. The MongoDB fixture uses `Effect.acquireRelease` to close its client. Locator assertions use the wrapper's `use` method to run native Playwright assertions with their auto-retry and soft-assertion behavior. Native event coordination arms response/dialog listeners before clicks.
+Additional browser contexts are acquired through effect-playwright and close when their Effect scope ends. The MongoDB fixture uses [effect-mongodb](https://github.com/doubleloop-io/effect-mongodb) 0.9.0 with its MongoDB driver 6 peer dependency. `MongoClient.connectScoped` closes the client when the fixture's Effect scope ends. Collection operations and cursors return Effects directly, and missing accounts use `Option`. Account and transaction schemas preserve extra MongoDB fields so rejection snapshots include IDs, credentials, metadata, and complete histories. Report attachments redact password hashes.
+
+Locator assertions use the wrapper's `use` method to run native Playwright assertions with their auto-retry and soft-assertion behavior. Native event coordination arms response/dialog listeners before clicks.
 
 In effect-playwright 0.9.0, Playwright reports test declaration locations in the integration adapter. Spec-file selection and workbook-ID filtering remain available. The package uses ES modules to load effect-playwright's ESM exports.
 
@@ -57,7 +61,7 @@ Registration and login cases prepare the existing account A. ZERO gives A a zero
 
 One worker runs the fixed workbook accounts sequentially. Global setup checks the worker count. Backend and temporary database cleanup runs at the end, including after failed assertions. Database operations use the URI created for this run.
 
-Each scenario has its own spec file. Each case uses its own Playwright scope to apply `test.use({ accountState: example.accountState })`. Shared login and successful prefix steps run in `beforeEach` hooks using that case's starting balance and history. Case loops supply input variants within that scenario. Browser actions use ordinary functions and the application's `cid` selectors. Successful deposits and withdrawals are verified before later scenario steps. Rejection tests compare all persisted account documents after refresh, including credentials and histories. Transfer cases also open a separate recipient browser context. Success cases check transaction targets, amounts, resulting balances, timestamps, and persistence. Direct database access clears fixtures and verifies persistence. All application HTTP requests originate from browser actions.
+Each scenario has its own spec file. Specs select cases by workflow tags such as `@withdrawal-rejection` and `@registration-journey`. Bill-payment rejection cases use `@bill-category-selected` or `@bill-category-required` to select the interaction. Rejection helpers receive an explicit message or required-field expectation. Each case uses its own Playwright scope to apply `test.use({ accountState: example.accountState })`. Shared login and successful prefix steps run in `beforeEach` hooks using that case's starting balance and history. Case loops supply input variants within that scenario. Browser actions use ordinary functions and the application's `cid` selectors. Successful deposits and withdrawals are verified before later scenario steps. Rejection tests compare all persisted account documents after refresh, including credentials and histories. Transfer cases also open a separate recipient browser context. Success cases check transaction targets, amounts, resulting balances, timestamps, and persistence. Direct database access clears fixtures and verifies persistence. All application HTTP requests originate from browser actions.
 
 ## Results
 

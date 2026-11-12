@@ -1,3 +1,4 @@
+import { Collection, FindCursor } from 'effect-mongodb';
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/cases';
@@ -11,13 +12,13 @@ test.describe('Scenario 2', () => {
       yield* expectSignedOut(page);
     }).pipe(Effect.scoped, Effect.runPromise),
   );
-  for (const example of cases.filter((item) => item.scenario === 2)) {
+  for (const example of cases.filter((item) => item.tags.includes('@login-rejection'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(
         example.title,
         {
-          tag: example.demo ? '@demo' : '@variant',
+          tag: [...example.tags],
           annotation: [
             { type: 'expected', description: example.expected },
             { type: 'precondition', description: example.precondition },
@@ -27,7 +28,10 @@ test.describe('Scenario 2', () => {
         ({ bank }) =>
           Effect.gen(function* () {
             const page = yield* Playwright.Page;
-            const before = yield* Effect.tryPromise(() => bank.find().sort({ accountId: 1 }).toArray());
+            const before = yield* Collection.find(bank).pipe(
+              FindCursor.sort({ accountId: 1 }),
+              FindCursor.toArray,
+            );
             const dialogs: string[] = [];
             yield* page.use(async (native) => {
               native.on('dialog', async (dialog) => {
@@ -46,9 +50,9 @@ test.describe('Scenario 2', () => {
             expect(dialogs).toEqual([]);
             yield* page.reload();
             yield* expectSignedOut(page);
-            expect(yield* Effect.tryPromise(() => bank.find().sort({ accountId: 1 }).toArray())).toEqual(
-              before,
-            );
+            expect(
+              yield* Collection.find(bank).pipe(FindCursor.sort({ accountId: 1 }), FindCursor.toArray),
+            ).toEqual(before);
           }),
       );
     });

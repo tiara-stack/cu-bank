@@ -13,13 +13,13 @@ test.describe('Scenario 3', () => {
       yield* expectAccount(page, sender.balance, sender.deposits.length);
     }).pipe(Effect.scoped, Effect.runPromise),
   );
-  for (const example of cases.filter((item) => item.scenario === 3)) {
+  for (const example of cases.filter((item) => item.tags.includes('@deposit-rejection'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(
         example.title,
         {
-          tag: example.demo ? '@demo' : '@variant',
+          tag: [...example.tags],
           annotation: [
             { type: 'expected', description: example.expected },
             { type: 'precondition', description: example.precondition },
@@ -39,7 +39,7 @@ test.describe('Scenario 3', () => {
                 confirm: page.getByTestId('dc'),
                 error: page.getByTestId('deposite-error-mes'),
               },
-              example.message,
+              { kind: 'message', message: example.message! },
             );
           }),
       );

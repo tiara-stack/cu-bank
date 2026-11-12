@@ -1,9 +1,23 @@
 import { fundedState, loginState, registrationState, zeroState, type AccountState } from './account-state';
 
+export type CaseTag =
+  | '@demo'
+  | '@variant'
+  | '@registration-rejection'
+  | '@login-rejection'
+  | '@deposit-rejection'
+  | '@withdrawal-rejection'
+  | '@transfer-rejection'
+  | '@bill-payment-rejection'
+  | '@bill-payment-success'
+  | '@registration-journey'
+  | '@bill-category-selected'
+  | '@bill-category-required';
+
 export const cases: ReadonlyArray<{
   id: string;
   scenario: number;
-  demo: boolean;
+  tags: ReadonlyArray<CaseTag>;
   title: string;
   precondition: string;
   accountState: AccountState;
@@ -17,7 +31,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": true,
+    "tags": ["@demo", "@registration-rejection"],
     "title": "Reject a nonnumeric account number",
     "inputs": {
       "Account Number": "123456789A",
@@ -34,7 +48,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a 9-digit account number",
     "inputs": {
       "Account Number": "123456789",
@@ -51,7 +65,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject an 11-digit account number",
     "inputs": {
       "Account Number": "12345678901",
@@ -68,7 +82,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a duplicate account number",
     "inputs": {
       "Account Number": "1111111111",
@@ -85,7 +99,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a nonnumeric password",
     "inputs": {
       "Account Number": "3333333333",
@@ -102,7 +116,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a 3-digit password",
     "inputs": {
       "Account Number": "3333333333",
@@ -119,7 +133,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a 5-digit password",
     "inputs": {
       "Account Number": "3333333333",
@@ -136,7 +150,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. Account A (1111111111) exists. C (3333333333) and every other attempted new account are absent.",
     "accountState": registrationState,
     "scenario": 1,
-    "demo": false,
+    "tags": ["@variant", "@registration-rejection"],
     "title": "Reject a 31-character full name",
     "inputs": {
       "Account Number": "3333333333",
@@ -153,7 +167,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": true,
+    "tags": ["@demo", "@login-rejection"],
     "title": "Reject an incorrect 4-digit password",
     "inputs": {
       "Account Number": "1111111111",
@@ -168,7 +182,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject a nonnumeric account number",
     "inputs": {
       "Account Number": "111111111A",
@@ -183,7 +197,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject a 9-digit account number",
     "inputs": {
       "Account Number": "111111111",
@@ -198,7 +212,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject an 11-digit account number",
     "inputs": {
       "Account Number": "11111111111",
@@ -213,7 +227,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject an account that does not exist",
     "inputs": {
       "Account Number": "9999999999",
@@ -228,7 +242,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject a nonnumeric password",
     "inputs": {
       "Account Number": "1111111111",
@@ -243,7 +257,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject a 3-digit password",
     "inputs": {
       "Account Number": "1111111111",
@@ -258,7 +272,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Fresh signed-out browser. A (1111111111) exists with password 1234. N (9999999999) does not exist.",
     "accountState": loginState,
     "scenario": 2,
-    "demo": false,
+    "tags": ["@variant", "@login-rejection"],
     "title": "Reject a 5-digit password",
     "inputs": {
       "Account Number": "1111111111",
@@ -273,7 +287,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 3,
-    "demo": true,
+    "tags": ["@demo", "@deposit-rejection"],
     "title": "Reject a zero deposit",
     "inputs": {
       "Deposit Amount": "0"
@@ -287,7 +301,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 3,
-    "demo": false,
+    "tags": ["@variant", "@deposit-rejection"],
     "title": "Reject a negative deposit",
     "inputs": {
       "Deposit Amount": "-1"
@@ -301,7 +315,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 3,
-    "demo": false,
+    "tags": ["@variant", "@deposit-rejection"],
     "title": "Reject a nonnumeric deposit",
     "inputs": {
       "Deposit Amount": "abc"
@@ -315,7 +329,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 3,
-    "demo": false,
+    "tags": ["@variant", "@deposit-rejection"],
     "title": "Reject a fractional deposit",
     "inputs": {
       "Deposit Amount": "100.5"
@@ -329,7 +343,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": true,
+    "tags": ["@demo", "@withdrawal-rejection"],
     "title": "Reject withdrawal above the balance",
     "inputs": {
       "Withdraw Amount": "1001"
@@ -343,7 +357,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": false,
+    "tags": ["@variant", "@withdrawal-rejection"],
     "title": "Reject withdrawal equal to the balance under the literal specification",
     "inputs": {
       "Withdraw Amount": "1000"
@@ -357,7 +371,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": false,
+    "tags": ["@variant", "@withdrawal-rejection"],
     "title": "Reject a zero withdrawal",
     "inputs": {
       "Withdraw Amount": "0"
@@ -371,7 +385,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": false,
+    "tags": ["@variant", "@withdrawal-rejection"],
     "title": "Reject a negative withdrawal",
     "inputs": {
       "Withdraw Amount": "-1"
@@ -385,7 +399,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": false,
+    "tags": ["@variant", "@withdrawal-rejection"],
     "title": "Reject a nonnumeric withdrawal",
     "inputs": {
       "Withdraw Amount": "abc"
@@ -399,7 +413,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0; history has 0 records.",
     "accountState": zeroState,
     "scenario": 4,
-    "demo": false,
+    "tags": ["@variant", "@withdrawal-rejection"],
     "title": "Reject a fractional withdrawal",
     "inputs": {
       "Withdraw Amount": "100.5"
@@ -413,7 +427,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": true,
+    "tags": ["@demo", "@transfer-rejection"],
     "title": "Reject transfer to an account that does not exist",
     "inputs": {
       "Transfer Target": "9999999999",
@@ -428,7 +442,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a nonnumeric recipient account",
     "inputs": {
       "Transfer Target": "222222222A",
@@ -443,7 +457,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a 9-digit recipient account",
     "inputs": {
       "Transfer Target": "222222222",
@@ -458,7 +472,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject an 11-digit recipient account",
     "inputs": {
       "Transfer Target": "22222222222",
@@ -473,7 +487,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a transfer to the sender account",
     "inputs": {
       "Transfer Target": "1111111111",
@@ -488,7 +502,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a zero transfer",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -503,7 +517,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a negative transfer",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -518,7 +532,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a nonnumeric transfer amount",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -533,7 +547,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject a fractional transfer amount",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -548,7 +562,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject transfer above the current balance",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -563,7 +577,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. A balance = 0, history = 0. B (2222222222) balance = 200, history = 1 seeded deposit. N (9999999999) is absent.",
     "accountState": zeroState,
     "scenario": 5,
-    "demo": false,
+    "tags": ["@variant", "@transfer-rejection"],
     "title": "Reject transfer equal to the balance under the literal specification",
     "inputs": {
       "Transfer Target": "2222222222",
@@ -578,7 +592,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": true,
+    "tags": ["@demo", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a bill payment above the balance",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -593,7 +607,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a bill payment equal to the balance under the literal specification",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -608,7 +622,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a zero bill payment",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -623,7 +637,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a negative bill payment",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -638,7 +652,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a nonnumeric bill payment",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -653,7 +667,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
     "title": "Reject a fractional bill payment",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -668,7 +682,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED. Start signed out. A balance = 1000; History has 1 setup deposit. Open a fresh Account page with no category selected.",
     "accountState": fundedState,
     "scenario": 6,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-rejection", "@bill-category-required"],
     "title": "Reject a bill payment without a selected category",
     "inputs": {
       "Target Payment": "None",
@@ -683,7 +697,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit.",
     "accountState": fundedState,
     "scenario": 7,
-    "demo": true,
+    "tags": ["@demo", "@bill-payment-success"],
     "title": "Pay Water Charge successfully",
     "inputs": {
       "Target Payment": "Water Charge",
@@ -698,7 +712,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit.",
     "accountState": fundedState,
     "scenario": 7,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-success"],
     "title": "Pay Electric Charge successfully",
     "inputs": {
       "Target Payment": "Electric Charge",
@@ -713,7 +727,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit.",
     "accountState": fundedState,
     "scenario": 7,
-    "demo": false,
+    "tags": ["@variant", "@bill-payment-success"],
     "title": "Pay Phone Charge successfully",
     "inputs": {
       "Target Payment": "Phone Charge",
@@ -728,7 +742,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. New account 3333333333 must not exist. B (2222222222) exists with password 1234, balance 200 and 1 setup-deposit record.",
     "accountState": zeroState,
     "scenario": 8,
-    "demo": true,
+    "tags": ["@demo", "@registration-journey"],
     "title": "Complete a successful registration-to-transfer journey",
     "inputs": {
       "Register Account Number": "3333333333",
@@ -747,7 +761,7 @@ export const cases: ReadonlyArray<{
     "precondition": "Apply fixture ZERO. Start signed out. New account 0333333333 must not exist. B (2222222222) exists with password 1234, balance 200 and 1 setup-deposit record.",
     "accountState": zeroState,
     "scenario": 8,
-    "demo": false,
+    "tags": ["@variant", "@registration-journey"],
     "title": "Accept a 30-character name and preserve leading zeros",
     "inputs": {
       "Register Account Number": "0333333333",

@@ -1,18 +1,24 @@
+import { Collection, FindCursor } from 'effect-mongodb';
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { expect, test } from '@playwright/test';
 import type { Bank } from './fixtures';
 import { expectAccount, recordNativeValidation } from './ui';
 
+type RejectionExpectation =
+  | { kind: 'message'; message: string }
+  | { kind: 'required-field'; input: Playwright.Locator };
+
 export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(function* (
   page: Playwright.Page,
   bank: Bank,
   form: { amount: Playwright.Locator; confirm: Playwright.Locator; error: Playwright.Locator },
-  message: string | null,
-  validationInput = form.amount,
+  expectation: RejectionExpectation,
 ) {
-  const before = yield* Effect.tryPromise(() => bank.find().sort({ accountId: 1 }).toArray());
-  const validation = yield* recordNativeValidation(validationInput);
+  const before = yield* Collection.find(bank).pipe(FindCursor.sort({ accountId: 1 }), FindCursor.toArray);
+  const validation = yield* recordNativeValidation(
+    expectation.kind === 'required-field' ? expectation.input : form.amount,
+  );
   const mutations: string[] = [];
   yield* page.use(async (native) => {
     native.on('request', (request) => {
@@ -21,7 +27,7 @@ export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(
   });
   yield* form.confirm.click();
 
-  if (message === null) {
+  if (expectation.kind === 'required-field') {
     expect(validation.valid).toBe(false);
     expect(validation.valueMissing).toBe(true);
     expect(validation.validationMessage).not.toBe('');
@@ -35,9 +41,9 @@ export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(
         (yield* form.error.allTextContents()).join(''),
         'Workbook application message was not observed because native validation blocked submission',
       )
-      .toBe(message);
+      .toBe(expectation.message);
   } else {
-    yield* form.error.use((locator) => expect.soft(locator).toHaveText(message));
+    yield* form.error.use((locator) => expect.soft(locator).toHaveText(expectation.message));
   }
   if (!validation.valid) expect(mutations).toEqual([]);
 
@@ -45,7 +51,7 @@ export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(
   yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
   expect
     .soft(
-      yield* Effect.tryPromise(() => bank.find().sort({ accountId: 1 }).toArray()),
+      yield* Collection.find(bank).pipe(FindCursor.sort({ accountId: 1 }), FindCursor.toArray),
       'Rejected actions must preserve every account, credential and transaction',
     )
     .toEqual(before);

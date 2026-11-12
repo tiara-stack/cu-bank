@@ -15,13 +15,13 @@ test.describe('Scenario 5', () => {
       yield* transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2);
     }).pipe(Effect.scoped, Effect.runPromise),
   );
-  for (const example of cases.filter((item) => item.scenario === 5)) {
+  for (const example of cases.filter((item) => item.tags.includes('@transfer-rejection'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(
         example.title,
         {
-          tag: example.demo ? '@demo' : '@variant',
+          tag: [...example.tags],
           annotation: [
             { type: 'expected', description: example.expected },
             { type: 'precondition', description: example.precondition },
@@ -43,7 +43,7 @@ test.describe('Scenario 5', () => {
                 confirm: page.getByTestId('tc'),
                 error: page.getByTestId('transfer-error-mes'),
               },
-              example.message,
+              { kind: 'message', message: example.message! },
             );
             const recipient = yield* browser.newContext({ baseURL });
             const recipientState = accountState.accounts.find(

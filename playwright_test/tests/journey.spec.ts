@@ -1,15 +1,16 @@
-import { Effect } from 'effect';
+import { Collection } from 'effect-mongodb';
+import { Effect, Option } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/cases';
 import { test, expect } from '../support/fixtures';
 import { expectAccount, expectHistory, expectSignedOut, login, register, transact } from '../support/ui';
-for (const example of cases.filter((item) => item.scenario === 8)) {
+for (const example of cases.filter((item) => item.tags.includes('@registration-journey'))) {
   test.describe(example.id, () => {
     test.use({ accountState: example.accountState });
     test.effect(
       example.title,
       {
-        tag: example.demo ? '@demo' : '@variant',
+        tag: [...example.tags],
         annotation: [
           { type: 'expected', description: example.expected },
           { type: 'precondition', description: example.precondition },
@@ -23,8 +24,10 @@ for (const example of cases.filter((item) => item.scenario === 8)) {
           const accountId = example.inputs['Register Account Number'];
           const password = example.inputs.Password;
           const name = `${example.inputs.Firstname} ${example.inputs.Lastname}`;
-          const recipientBefore = yield* Effect.tryPromise(() => bank.findOne({ accountId: '2222222222' }));
-          expect(yield* Effect.tryPromise(() => bank.findOne({ accountId }))).toBeNull();
+          const recipientBefore = Option.getOrThrow(
+            yield* Collection.findOne(bank, { accountId: '2222222222' }),
+          );
+          expect(Option.isNone(yield* Collection.findOne(bank, { accountId }))).toBe(true);
           const message = yield* register(page, {
             accountId,
             password,
@@ -37,7 +40,7 @@ for (const example of cases.filter((item) => item.scenario === 8)) {
           expect.soft(message, 'Workbook registration success wording').toBe('success');
           yield* page.use((native) => expect(native).toHaveURL(/\/$/));
           yield* expectSignedOut(page);
-          expect(yield* Effect.tryPromise(() => bank.findOne({ accountId }))).toMatchObject({
+          expect(Option.getOrThrow(yield* Collection.findOne(bank, { accountId }))).toMatchObject({
             accountId,
             name,
             balance: 0,
@@ -87,16 +90,18 @@ for (const example of cases.filter((item) => item.scenario === 8)) {
           yield* expectHistory(page, senderHistory);
           yield* expectAccount(recipientPage, 500, 2);
           yield* expectHistory(recipientPage, recipientHistory);
-          const senderAfter = yield* Effect.tryPromise(() => bank.findOne({ accountId }));
-          const recipientAfter = yield* Effect.tryPromise(() => bank.findOne({ accountId: '2222222222' }));
-          expect(senderAfter!.transactions).toMatchObject(senderHistory);
-          expect(recipientAfter!.transactions).toMatchObject(recipientHistory);
-          expect(recipientAfter!.transactions[0]).toEqual(recipientBefore!.transactions[0]);
-          for (const transaction of [...senderAfter!.transactions, recipientAfter!.transactions[1]]) {
+          const senderAfter = Option.getOrThrow(yield* Collection.findOne(bank, { accountId }));
+          const recipientAfter = Option.getOrThrow(
+            yield* Collection.findOne(bank, { accountId: '2222222222' }),
+          );
+          expect(senderAfter.transactions).toMatchObject(senderHistory);
+          expect(recipientAfter.transactions).toMatchObject(recipientHistory);
+          expect(recipientAfter.transactions[0]).toEqual(recipientBefore.transactions[0]);
+          for (const transaction of [...senderAfter.transactions, recipientAfter.transactions[1]]) {
             expect(transaction.date.getTime()).toBeGreaterThanOrEqual(startedAt);
             expect(transaction.date.getTime()).toBeLessThanOrEqual(Date.now());
           }
-          expect(senderAfter!.balance + recipientAfter!.balance).toBe(1000);
+          expect(senderAfter.balance + recipientAfter.balance).toBe(1000);
         }),
     );
   });

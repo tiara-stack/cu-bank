@@ -1,28 +1,34 @@
 import { test as base, type Browser } from '@playwright/test';
 import { expect, makeMethods } from 'effect-playwright/test';
-import { Effect } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { MongoClient, type Collection } from 'mongodb';
+import { Collection, Db, FindCursor, MongoClient } from 'effect-mongodb';
 import type { AccountPrecondition, AccountState } from '../data/account-state';
 import { expectAccount, expectHistory, login, register, transact } from './ui';
 
-type Transaction = {
-  title: string;
-  target: string;
-  amount: number;
-  balance: number;
-  date: Date;
-};
+const TransactionSchema = Schema.StructWithRest(
+  Schema.Struct({
+    title: Schema.String,
+    target: Schema.String,
+    amount: Schema.Number,
+    balance: Schema.Number,
+    date: Schema.Date,
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-type Account = {
-  accountId: string;
-  name: string;
-  balance: number;
-  password: string;
-  transactions: Transaction[];
-};
+const AccountSchema = Schema.StructWithRest(
+  Schema.Struct({
+    accountId: Schema.String,
+    name: Schema.String,
+    balance: Schema.Number,
+    password: Schema.String,
+    transactions: Schema.Array(TransactionSchema),
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-export type Bank = Collection<Account>;
+export type Bank = Collection.Collection<typeof AccountSchema.Type>;
 
 const seedAccount = Effect.fn('seedAccount')(function* (
   browser: Browser,
@@ -56,43 +62,41 @@ const fixtures = base.extend<{
       const program = Effect.gen(function* () {
         const uri = process.env.PLAYWRIGHT_MONGO_URI;
         if (!uri) throw new Error('The isolated database was not started by global setup.');
-        const client = yield* Effect.acquireRelease(
-          Effect.tryPromise(() => MongoClient.connect(uri)),
-          (client) => Effect.promise(() => client.close()),
-        );
-        const users = client.db().collection<Account>('users');
+        const client = yield* MongoClient.connectScoped(uri);
+        const users = Db.collection(MongoClient.db(client), 'users', AccountSchema);
         yield* Effect.promise(() =>
           testInfo.attach('account-preconditions', {
             body: JSON.stringify(accountState, null, 2),
             contentType: 'application/json',
           }),
         );
-        yield* Effect.tryPromise(() => users.deleteMany({}));
+        yield* Collection.deleteMany(users, {});
         for (const account of accountState.accounts) {
           const history = yield* Effect.scoped(seedAccount(browser, baseURL, account));
-          const stored = yield* Effect.tryPromise(() => users.findOne({ accountId: account.accountId }));
+          const stored = Option.getOrThrow(
+            yield* Collection.findOne(users, { accountId: account.accountId }),
+          );
           expect(stored, `Required account ${account.accountId}`).toMatchObject({
             accountId: account.accountId,
             name: `${account.firstName} ${account.lastName}`,
             balance: account.balance,
             transactions: history,
           });
-          expect(stored!.transactions).toHaveLength(account.deposits.length);
+          expect(stored.transactions).toHaveLength(account.deposits.length);
         }
-        expect(yield* Effect.tryPromise(() => users.countDocuments())).toBe(accountState.accounts.length);
+        expect(yield* Collection.countDocuments(users)).toBe(accountState.accounts.length);
         for (const accountId of accountState.absentAccountIds) {
           expect(
-            yield* Effect.tryPromise(() => users.findOne({ accountId })),
+            Option.isNone(yield* Collection.findOne(users, { accountId })),
             `Account ${accountId} must be absent`,
-          ).toBeNull();
+          ).toBe(true);
         }
         yield* Effect.promise(() => use(users));
-        const accounts = yield* Effect.tryPromise(() =>
-          users.find({}, { projection: { password: 0 } }).toArray(),
-        );
+        const accounts = yield* Collection.find(users).pipe(FindCursor.toArray);
+        const redacted = accounts.map(({ password: _password, ...account }) => account);
         yield* Effect.promise(() =>
           testInfo.attach('persisted-accounts', {
-            body: JSON.stringify(accounts, null, 2),
+            body: JSON.stringify(redacted, null, 2),
             contentType: 'application/json',
           }),
         );

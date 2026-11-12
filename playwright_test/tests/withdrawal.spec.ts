@@ -14,13 +14,13 @@ test.describe('Scenario 4', () => {
       yield* transact(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1);
     }).pipe(Effect.scoped, Effect.runPromise),
   );
-  for (const example of cases.filter((item) => item.scenario === 4)) {
+  for (const example of cases.filter((item) => item.tags.includes('@withdrawal-rejection'))) {
     test.describe(example.id, () => {
       test.use({ accountState: example.accountState });
       test.effect(
         example.title,
         {
-          tag: example.demo ? '@demo' : '@variant',
+          tag: [...example.tags],
           annotation: [
             { type: 'expected', description: example.expected },
             { type: 'precondition', description: example.precondition },
@@ -40,7 +40,7 @@ test.describe('Scenario 4', () => {
                 confirm: page.getByTestId('wc'),
                 error: page.getByTestId('withdraw-error-mes'),
               },
-              example.message,
+              { kind: 'message', message: example.message! },
             );
           }),
       );

@@ -1,4 +1,5 @@
-import { Effect } from 'effect';
+import { Collection } from 'effect-mongodb';
+import { Effect, Option } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/cases';
 import { test, expect } from '../support/fixtures';
@@ -22,13 +23,13 @@ const categories: Record<
   'Electric Charge': { cid: 'b2', target: 'electric' },
   'Phone Charge': { cid: 'b3', target: 'phone' },
 };
-for (const example of cases.filter((item) => item.scenario === 7)) {
+for (const example of cases.filter((item) => item.tags.includes('@bill-payment-success'))) {
   test.describe(example.id, () => {
     test.use({ accountState: example.accountState });
     test.effect(
       example.title,
       {
-        tag: example.demo ? '@demo' : '@variant',
+        tag: [...example.tags],
         annotation: [
           { type: 'precondition', description: example.precondition },
           { type: 'expected', description: example.expected },
@@ -37,10 +38,10 @@ for (const example of cases.filter((item) => item.scenario === 7)) {
       ({ bank }) =>
         Effect.gen(function* () {
           const page = yield* Playwright.Page;
-          const before = yield* Effect.tryPromise(() => bank.findOne({ accountId: '1111111111' }));
+          const before = Option.getOrThrow(yield* Collection.findOne(bank, { accountId: '1111111111' }));
           const category = categories[example.inputs['Target Payment']];
           const amount = Number(example.inputs.Amount);
-          const balance = before!.balance - amount;
+          const balance = before.balance - amount;
           yield* page.getByTestId(category.cid).check();
           for (const choice of Object.values(categories)) {
             yield* page
@@ -58,7 +59,7 @@ for (const example of cases.filter((item) => item.scenario === 7)) {
           });
           expect(response.ok()).toBe(true);
           const history = [
-            ...before!.transactions,
+            ...before.transactions,
             { title: 'billpayment', target: category.target, amount, balance },
           ];
           yield* expectAccount(page, balance, history.length);
@@ -66,9 +67,9 @@ for (const example of cases.filter((item) => item.scenario === 7)) {
           yield* page.reload();
           yield* expectAccount(page, balance, history.length);
           yield* expectHistory(page, history);
-          const after = yield* Effect.tryPromise(() => bank.findOne({ accountId: '1111111111' }));
-          expect(after!.transactions.slice(0, before!.transactions.length)).toEqual(before!.transactions);
-          const payment = after!.transactions.at(-1)!;
+          const after = Option.getOrThrow(yield* Collection.findOne(bank, { accountId: '1111111111' }));
+          expect(after.transactions.slice(0, before.transactions.length)).toEqual(before.transactions);
+          const payment = after.transactions.at(-1)!;
           expect(payment).toMatchObject(history.at(-1)!);
           expect(payment.date.getTime()).toBeGreaterThanOrEqual(startedAt);
           expect(payment.date.getTime()).toBeLessThanOrEqual(Date.now());
