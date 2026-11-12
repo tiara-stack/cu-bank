@@ -13,7 +13,6 @@ export const expectSignedOut = Effect.fn('expectSignedOut')(function* (page: Pla
   yield* page
     .getByRole('link', { name: 'LOG OUT', exact: true })
     .use((locator) => expect(locator).toHaveCount(0));
-  expect(yield* page.evaluate(() => localStorage.getItem('user'))).toBeNull();
 });
 
 export const register = Effect.fn('register')(function* (
@@ -26,17 +25,19 @@ export const register = Effect.fn('register')(function* (
   yield* page.getByTestId('r3').fill(account.firstName);
   yield* page.getByTestId('r4').fill(account.lastName);
   // Arm the listener before clicking, then accept the dialog before awaiting the click.
-  const message = yield* page.use(async (native) => {
+  const dialogInfo = yield* page.use(async (native) => {
     const dialogPromise = native.waitForEvent('dialog');
     const submission = native.getByTestId('rc').click();
     const dialog = await dialogPromise;
     const message = dialog.message();
+    const type = dialog.type();
     await dialog.accept();
     await submission;
-    return message;
+    return { message, type };
   });
+  expect(dialogInfo.type).toBe('alert');
   yield* page.use((native) => expect(native).toHaveURL(/\/$/));
-  return message;
+  return dialogInfo.message;
 });
 
 export const login = Effect.fn('login')(function* (
@@ -101,7 +102,15 @@ export const expectHistory = Effect.fn('expectHistory')(function* (
     yield* record
       .getByText(`balance: ${transaction.balance}`, { exact: true })
       .use((locator) => expect(locator).toBeVisible());
+    yield* expectHistoryDate(record);
   }
+});
+
+const expectHistoryDate = Effect.fn('expectHistoryDate')(function* (record: Playwright.Locator) {
+  const text = yield* record.getByText(/^date:/).innerText();
+  const timestamp = Date.parse(text.replace(/^date:\s*/, ''));
+  expect(Number.isFinite(timestamp), 'Displayed transaction date').toBe(true);
+  expect(timestamp, 'Displayed transaction date').toBeLessThanOrEqual(Date.now());
 });
 
 export const transact = Effect.fn('transact')(function* (
@@ -113,15 +122,7 @@ export const transact = Effect.fn('transact')(function* (
 ) {
   const [input, confirm] = action === 'deposit' ? ['d1', 'dc'] : ['w1', 'wc'];
   yield* page.getByTestId(input).fill(String(amount));
-  const response = yield* page.use(async (native) => {
-    const response = native.waitForResponse(
-      (result) =>
-        result.url() === 'http://localhost:4000/api/v1/transactions/' && result.request().method() === 'PUT',
-    );
-    await native.getByTestId(confirm).click();
-    return response;
-  });
-  expect(response.ok()).toBe(true);
+  yield* page.getByTestId(confirm).click();
   yield* expectAccount(page, balance, count);
   const record = page.locator('.history-list > .account-form > div').last();
   yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(action));
@@ -131,6 +132,7 @@ export const transact = Effect.fn('transact')(function* (
   yield* record
     .getByText(`balance: ${balance}`, { exact: true })
     .use((locator) => expect(locator).toBeVisible());
+  yield* expectHistoryDate(record);
 });
 
 export const enterAmount = Effect.fn('enterAmount')(function* (input: Playwright.Locator, amount: string) {

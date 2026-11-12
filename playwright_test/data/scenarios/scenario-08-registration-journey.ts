@@ -1,14 +1,19 @@
-import { zeroState } from '../account-state';
+import { registrationJourneyState } from '../account-state';
 import type { TestCase } from '../test-case';
 
 export const cases: ReadonlyArray<TestCase> = [
   {
     "id": "S8-TC01",
-    "accountState": zeroState,
+    "accountState": registrationJourneyState({
+      "accountId": "3333333333",
+      "password": "1234",
+      "firstName": "Sam",
+      "lastName": "Son"
+    }),
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
-        "2222222222": {
+        "recipient": {
           "name": "Jane Doe",
           "balance": 500,
           "transactions": [
@@ -26,7 +31,7 @@ export const cases: ReadonlyArray<TestCase> = [
             }
           ]
         },
-        "3333333333": {
+        "sender": {
           "name": "Sam Son",
           "balance": 500,
           "transactions": [
@@ -74,11 +79,16 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     "id": "S8-TC02",
-    "accountState": zeroState,
+    "accountState": registrationJourneyState({
+      "accountId": "0333333333",
+      "password": "0123",
+      "firstName": "ABCDEFGHIJKLMNO",
+      "lastName": "ABCDEFGHIJKLMN"
+    }),
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
-        "2222222222": {
+        "recipient": {
           "name": "Jane Doe",
           "balance": 500,
           "transactions": [
@@ -96,7 +106,7 @@ export const cases: ReadonlyArray<TestCase> = [
             }
           ]
         },
-        "0333333333": {
+        "sender": {
           "name": "ABCDEFGHIJKLMNO ABCDEFGHIJKLMN",
           "balance": 500,
           "transactions": [

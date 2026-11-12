@@ -6,7 +6,7 @@ import { expectAccount, expectHistory, login } from '../support/ui';
 test.beforeEach(({ page: nativePage, accountState }) =>
   Effect.gen(function* () {
     const page = Playwright.makePage(nativePage);
-    const sender = accountState.accounts.find((account) => account.accountId === '1111111111')!;
+    const sender = accountState.accounts.sender;
     yield* login(page, sender.accountId, sender.password);
     yield* expectAccount(page, sender.balance, sender.deposits.length);
   }).pipe(Effect.scoped, Effect.runPromise),
@@ -25,7 +25,7 @@ for (const example of cases) {
   testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts }) =>
     Effect.gen(function* () {
       const page = yield* Playwright.Page;
-      const expected = expectedAccounts['1111111111'];
+      const expected = expectedAccounts.sender;
       const category = categories[example.inputs['Target Payment']];
       yield* page.getByTestId(category.cid).check();
       for (const choice of Object.values(categories)) {
@@ -34,14 +34,8 @@ for (const example of cases) {
           .use((native) => expect(native).toBeChecked({ checked: choice.cid === category.cid }));
       }
       yield* page.getByTestId('b4').fill(example.inputs.Amount);
-      const response = yield* page.use(async (native) => {
-        const pending = native.waitForResponse(
-          (result) => result.url().endsWith('/transactions/') && result.request().method() === 'PUT',
-        );
-        await native.getByTestId('bc').click();
-        return pending;
-      });
-      expect(response.ok()).toBe(true);
+      yield* page.getByTestId('bc').click();
+
       yield* expectAccount(page, expected.balance, expected.transactions.length);
       yield* expectHistory(page, expected.transactions);
       yield* page.reload();

@@ -8,7 +8,7 @@ export const cases: ReadonlyArray<TestCase> = [
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
-        "1111111111": {
+        "sender": {
           "name": "Sam Son",
           "balance": 700,
           "transactions": [
@@ -50,7 +50,7 @@ export const cases: ReadonlyArray<TestCase> = [
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
-        "1111111111": {
+        "sender": {
           "name": "Sam Son",
           "balance": 500,
           "transactions": [
@@ -92,7 +92,7 @@ export const cases: ReadonlyArray<TestCase> = [
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
-        "1111111111": {
+        "sender": {
           "name": "Sam Son",
           "balance": 800,
           "transactions": [

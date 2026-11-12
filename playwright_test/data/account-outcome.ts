@@ -13,11 +13,13 @@ export type AccountExpectation = {
   transactions: ReadonlyArray<TransactionExpectation>;
 };
 
-export type ExpectedAccounts = Readonly<Record<string, AccountExpectation>>;
+export type ExpectedAccount = AccountExpectation & { accountId: string };
+
+export type ExpectedAccounts = Readonly<Record<string, ExpectedAccount>>;
 
 export type AccountOutcome = {
   kind: 'unchanged' | 'updated';
-  accounts: ExpectedAccounts;
+  accounts: Readonly<Record<string, AccountExpectation>>;
 };
 
 export const unchangedAccountOutcome: AccountOutcome = { kind: 'unchanged', accounts: {} };
@@ -33,15 +35,20 @@ export function depositHistory(deposits: ReadonlyArray<number>): TransactionExpe
 }
 
 export function expectedAccountsFor(state: AccountState, outcome: AccountOutcome): ExpectedAccounts {
-  const seeded = Object.fromEntries(
-    state.accounts.map((account) => [
-      account.accountId,
-      {
-        name: `${account.firstName} ${account.lastName}`,
-        balance: account.balance,
-        transactions: depositHistory(account.deposits),
-      },
-    ]),
-  );
-  return { ...seeded, ...outcome.accounts };
+  const expected: Record<string, ExpectedAccount> = {};
+  for (const [role, account] of Object.entries(state.accounts)) {
+    if (account.exists === false) continue;
+    expected[role] = {
+      accountId: account.accountId,
+      name: `${account.firstName} ${account.lastName}`,
+      balance: account.balance,
+      transactions: depositHistory(account.deposits),
+    };
+  }
+  for (const [role, result] of Object.entries(outcome.accounts)) {
+    const account = state.accounts[role];
+    if (!account) throw new Error(`Account outcome refers to undefined role "${role}".`);
+    expected[role] = { accountId: account.accountId, ...result };
+  }
+  return expected;
 }

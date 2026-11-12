@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-02-login';
 import { test, expect, testFor } from '../support/fixtures';
-import { expectSignedOut } from '../support/ui';
+import { expectSignedOut, login, expectAccount, expectHistory } from '../support/ui';
 test.beforeEach(({ page: nativePage }) =>
   Effect.gen(function* () {
     const page = Playwright.makePage(nativePage);
@@ -14,8 +14,7 @@ for (const example of cases) {
   testFor(example).effect(
     `${example.id} ${example.title}`,
     example.details,
-    // Activates the fixture-owned account outcome checks after this UI-only case.
-    ({ expectedAccounts: _expectedAccounts }) =>
+    ({ expectedAccounts, accountState, baseURL }) =>
       Effect.gen(function* () {
         const page = yield* Playwright.Page;
         const dialogs: string[] = [];
@@ -36,6 +35,22 @@ for (const example of cases) {
         expect(dialogs).toEqual([]);
         yield* page.reload();
         yield* expectSignedOut(page);
+        const browser = yield* Playwright.Browser;
+        const sender = accountState.accounts.sender;
+        const senderResult = expectedAccounts.sender;
+        const senderContext = yield* browser.newContext({ baseURL });
+        const senderPage = yield* senderContext.newPage;
+        yield* login(senderPage, sender.accountId, sender.password);
+        yield* expectAccount(senderPage, senderResult.balance, senderResult.transactions.length);
+        yield* expectHistory(senderPage, senderResult.transactions);
+        yield* senderPage
+          .locator('article')
+          .first()
+          .getByRole('heading', { name: senderResult.name, exact: true })
+          .use((native) => expect(native).toBeVisible());
+        yield* senderPage.reload();
+        yield* expectAccount(senderPage, senderResult.balance, senderResult.transactions.length);
+        yield* expectHistory(senderPage, senderResult.transactions);
       }),
   );
 }

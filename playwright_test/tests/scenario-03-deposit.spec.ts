@@ -1,13 +1,13 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-03-deposit';
-import { test, testFor } from '../support/fixtures';
-import { expectTransactionRejected } from '../support/rejections';
-import { enterAmount, expectAccount, login } from '../support/ui';
+import { test, expect, testFor } from '../support/fixtures';
+import { expectRejectionMessage } from '../support/rejections';
+import { enterAmount, expectAccount, login, expectHistory, recordNativeValidation } from '../support/ui';
 test.beforeEach(({ page: nativePage, accountState }) =>
   Effect.gen(function* () {
     const page = Playwright.makePage(nativePage);
-    const sender = accountState.accounts.find((account) => account.accountId === '1111111111')!;
+    const sender = accountState.accounts.sender;
     yield* login(page, sender.accountId, sender.password);
     yield* expectAccount(page, sender.balance, sender.deposits.length);
   }).pipe(Effect.scoped, Effect.runPromise),
@@ -18,16 +18,26 @@ for (const example of cases) {
       const page = yield* Playwright.Page;
       const amount = page.getByTestId('d1');
       yield* enterAmount(amount, example.inputs['Deposit Amount']);
-      yield* expectTransactionRejected(
+      const historyBefore = yield* page.locator('.history-list').innerText();
+      const validation = yield* recordNativeValidation(amount);
+      yield* page.getByTestId('dc').click();
+      if (!validation.valid) yield* amount.use((native) => expect(native).toBeFocused());
+      yield* expectRejectionMessage(page.getByTestId('deposite-error-mes'), example.message!, validation);
+
+      yield* page.reload();
+      yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
+      yield* expectAccount(
         page,
-        expectedAccounts['1111111111'],
-        {
-          amount,
-          confirm: page.getByTestId('dc'),
-          error: page.getByTestId('deposite-error-mes'),
-        },
-        { kind: 'message', message: example.message! },
+        expectedAccounts.sender.balance,
+        expectedAccounts.sender.transactions.length,
       );
+      yield* expectHistory(page, expectedAccounts.sender.transactions);
+      yield* page
+        .locator('.history-list')
+        .use((native) => expect(native).toHaveText(historyBefore, { useInnerText: true }));
+      yield* page
+        .getByRole('link', { name: 'LOG OUT', exact: true })
+        .use((locator) => expect(locator).toBeVisible());
     }),
   );
 }

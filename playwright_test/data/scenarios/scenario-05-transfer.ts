@@ -6,7 +6,7 @@ import type { TestCase } from '../test-case';
 const accountOutcome: AccountOutcome = {
   "kind": "unchanged",
   "accounts": {
-    "1111111111": {
+    "sender": {
       "name": "Sam Son",
       "balance": 800,
       "transactions": [
