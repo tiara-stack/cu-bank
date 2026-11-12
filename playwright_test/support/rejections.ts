@@ -1,9 +1,8 @@
-import { Collection, FindCursor } from 'effect-mongodb';
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { expect, test } from '@playwright/test';
-import type { Bank } from './fixtures';
-import { expectAccount, recordNativeValidation } from './ui';
+import type { AccountExpectation } from '../data/account-outcome';
+import { expectAccount, expectHistory, recordNativeValidation } from './ui';
 
 type RejectionExpectation =
   | { kind: 'message'; message: string }
@@ -11,11 +10,10 @@ type RejectionExpectation =
 
 export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(function* (
   page: Playwright.Page,
-  bank: Bank,
+  expected: AccountExpectation,
   form: { amount: Playwright.Locator; confirm: Playwright.Locator; error: Playwright.Locator },
   expectation: RejectionExpectation,
 ) {
-  const before = yield* Collection.find(bank).pipe(FindCursor.sort({ accountId: 1 }), FindCursor.toArray);
   const validation = yield* recordNativeValidation(
     expectation.kind === 'required-field' ? expectation.input : form.amount,
   );
@@ -49,14 +47,8 @@ export const expectTransactionRejected = Effect.fn('expectTransactionRejected')(
 
   yield* page.reload();
   yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
-  expect
-    .soft(
-      yield* Collection.find(bank).pipe(FindCursor.sort({ accountId: 1 }), FindCursor.toArray),
-      'Rejected actions must preserve every account, credential and transaction',
-    )
-    .toEqual(before);
-  const sender = before.find((account) => account.accountId === '1111111111')!;
-  yield* expectAccount(page, sender.balance, sender.transactions.length);
+  yield* expectAccount(page, expected.balance, expected.transactions.length);
+  yield* expectHistory(page, expected.transactions);
   yield* page
     .getByRole('link', { name: 'LOG OUT', exact: true })
     .use((locator) => expect(locator).toBeVisible());

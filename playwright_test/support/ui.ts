@@ -1,6 +1,7 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { expect, test } from '@playwright/test';
+import type { TransactionExpectation } from '../data/account-outcome';
 
 export const expectSignedOut = Effect.fn('expectSignedOut')(function* (page: Playwright.Page) {
   yield* page
@@ -84,7 +85,7 @@ export const expectAccount = Effect.fn('expectAccount')(function* (
 
 export const expectHistory = Effect.fn('expectHistory')(function* (
   page: Playwright.Page,
-  history: ReadonlyArray<{ title: string; target: string; amount: number; balance: number }>,
+  history: ReadonlyArray<TransactionExpectation>,
 ) {
   const records = page.locator('.history-list > .account-form > div');
   yield* records.use((locator) => expect(locator).toHaveCount(history.length));

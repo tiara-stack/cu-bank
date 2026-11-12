@@ -1,4 +1,5 @@
 import type { AccountState } from './account-state';
+import type { AccountOutcome } from './account-outcome';
 
 export type CaseTag =
   | '@demo'
@@ -14,15 +15,18 @@ export type CaseTag =
   | '@bill-category-selected'
   | '@bill-category-required';
 
+export type CaseDetails = {
+  tag: CaseTag[];
+  annotation: Array<{ type: string; description: string }>;
+};
+
 export type TestCase = {
   id: string;
   scenario: number;
-  tags: ReadonlyArray<CaseTag>;
+  details: CaseDetails;
   title: string;
-  precondition: string;
   accountState: AccountState;
+  accountOutcome: AccountOutcome;
   inputs: Readonly<Record<string, string>>;
   message: string | null;
-  expected: string;
-  notes: string;
 };
