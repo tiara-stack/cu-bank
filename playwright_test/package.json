@@ -1,0 +1,32 @@
+{
+  "name": "playwright_test",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CU Bank frontend end-to-end tests",
+  "scripts": {
+    "test": "playwright test",
+    "test:demo": "playwright test --grep @demo",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:list": "playwright test --list",
+    "report": "playwright show-report",
+    "browsers:install": "playwright install chromium",
+    "typecheck": "tsc --noEmit",
+    "lint": "fallow dead-code",
+    "check": "npm run typecheck && npm run lint"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "24.19.2",
+    "effect": "4.1.4",
+    "effect-playwright": "0.9.0",
+    "fallow": "3.42.0",
+    "mongodb": "7.8.0",
+    "mongodb-memory-server": "11.3.0",
+    "typescript": "5.9.3"
+  }
+}

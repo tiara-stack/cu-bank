@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "ignorePatterns": [
+    "playwright-report/**",
+    "test-results/**",
+    "blob-report/**"
+  ]
+}

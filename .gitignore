@@ -1,0 +1,27 @@
+# Environment files
+.env
+.env.*
+*.env
+*.env.*
+.envrc
+.envrc.*
+.direnv/
+
+# Dependencies and generated output
+node_modules/
+jspm_packages/
+build/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.cache/
+.fallow/
+fallow-report*
+.serverless/
+
+# Local logs and system files
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cu-bank
+resources:
+  - resources.yaml
+images:
+  - name: cu-bank-backend
+    newName: registry.digitalocean.com/theerapakg-registry/cu-bank-backend
+    newTag: release-20261112-141808
+    digest: sha256:a40b0c2f3f8be2e4f0bf3729af0012d3780a72b98bf4af7d32dc75a2a9bdeb73
+  - name: cu-bank-frontend
+    newName: registry.digitalocean.com/theerapakg-registry/cu-bank-frontend
+    newTag: release-20261112-141808
+    digest: sha256:d60165feeb8dc3ea75cf138f415d02ddf2d2f4016e482a8483b722abc0aba16e
