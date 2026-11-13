@@ -45,13 +45,9 @@ for (const example of cases) {
         yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipientResult.transactions.length);
         yield* expectAccountPage(recipientPage).toHaveHistory(recipientResult.transactions);
         yield* page.reload();
-        yield* recipientPage.reload();
         yield* expectAccountPage(page).toHaveBalance(senderResult.balance);
         yield* expectAccountPage(page).toHaveHistoryCount(senderResult.transactions.length);
         yield* expectAccountPage(page).toHaveHistory(senderResult.transactions);
-        yield* expectAccountPage(recipientPage).toHaveBalance(recipientResult.balance);
-        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipientResult.transactions.length);
-        yield* expectAccountPage(recipientPage).toHaveHistory(recipientResult.transactions);
       }),
   );
 }

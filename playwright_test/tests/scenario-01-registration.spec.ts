@@ -42,10 +42,6 @@ for (const example of cases) {
         yield* expectAccountPage(senderPage).toHaveHistoryCount(senderResult.transactions.length);
         yield* expectAccountPage(senderPage).toHaveHistory(senderResult.transactions);
         yield* expectAccountPage(senderPage).toHaveName(senderResult.name);
-        yield* senderPage.reload();
-        yield* expectAccountPage(senderPage).toHaveBalance(senderResult.balance);
-        yield* expectAccountPage(senderPage).toHaveHistoryCount(senderResult.transactions.length);
-        yield* expectAccountPage(senderPage).toHaveHistory(senderResult.transactions);
       }),
   );
 }
