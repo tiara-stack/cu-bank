@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-02-login';
 import { expect, testFor } from '../support/fixtures';
-import { expectSignedOut, login, expectAccount, expectHistory } from '../support/ui';
+import { expectSignedOut, login, expectAccountPage } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
     `${example.id} ${example.title}`,
@@ -36,22 +36,14 @@ for (const example of cases) {
         const senderContext = yield* browser.newContext({ baseURL });
         const senderPage = yield* senderContext.newPage;
         yield* login(senderPage, sender.accountId, sender.password);
-        yield* expectAccount(senderPage, {
-          balance: senderResult.balance,
-          historyCount: senderResult.transactions.length,
-        });
-        yield* expectHistory(senderPage, { transactions: senderResult.transactions });
-        yield* senderPage
-          .locator('article')
-          .first()
-          .getByRole('heading', { name: senderResult.name, exact: true })
-          .use((native) => expect(native).toBeVisible());
+        yield* expectAccountPage(senderPage).toHaveBalance(senderResult.balance);
+        yield* expectAccountPage(senderPage).toHaveHistoryCount(senderResult.transactions.length);
+        yield* expectAccountPage(senderPage).toHaveHistory(senderResult.transactions);
+        yield* expectAccountPage(senderPage).toHaveName(senderResult.name);
         yield* senderPage.reload();
-        yield* expectAccount(senderPage, {
-          balance: senderResult.balance,
-          historyCount: senderResult.transactions.length,
-        });
-        yield* expectHistory(senderPage, { transactions: senderResult.transactions });
+        yield* expectAccountPage(senderPage).toHaveBalance(senderResult.balance);
+        yield* expectAccountPage(senderPage).toHaveHistoryCount(senderResult.transactions.length);
+        yield* expectAccountPage(senderPage).toHaveHistory(senderResult.transactions);
       }),
   );
 }

@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
 import { expect, testFor } from '../support/fixtures';
-import { expectAccount, expectHistory, login } from '../support/ui';
+import { expectAccountPage, login } from '../support/ui';
 const categories: Record<
   string,
   {
@@ -19,7 +19,8 @@ for (const example of cases) {
       const page = yield* Playwright.Page;
       const sender = accountState.accounts.sender;
       yield* login(page, sender.accountId, sender.password);
-      yield* expectAccount(page, { balance: sender.balance, historyCount: sender.deposits.length });
+      yield* expectAccountPage(page).toHaveBalance(sender.balance);
+      yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
       const expected = expectedAccounts.sender;
       const category = categories[example.inputs['Target Payment']];
       yield* page.getByTestId(category.cid).check();
@@ -31,11 +32,13 @@ for (const example of cases) {
       yield* page.getByTestId('b4').fill(example.inputs.Amount);
       yield* page.getByTestId('bc').click();
 
-      yield* expectAccount(page, { balance: expected.balance, historyCount: expected.transactions.length });
-      yield* expectHistory(page, { transactions: expected.transactions });
+      yield* expectAccountPage(page).toHaveBalance(expected.balance);
+      yield* expectAccountPage(page).toHaveHistoryCount(expected.transactions.length);
+      yield* expectAccountPage(page).toHaveHistory(expected.transactions);
       yield* page.reload();
-      yield* expectAccount(page, { balance: expected.balance, historyCount: expected.transactions.length });
-      yield* expectHistory(page, { transactions: expected.transactions });
+      yield* expectAccountPage(page).toHaveBalance(expected.balance);
+      yield* expectAccountPage(page).toHaveHistoryCount(expected.transactions.length);
+      yield* expectAccountPage(page).toHaveHistory(expected.transactions);
     }),
   );
 }

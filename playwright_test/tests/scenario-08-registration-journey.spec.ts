@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-08-registration-journey';
 import { test, expect, testFor } from '../support/fixtures';
-import { expectAccount, expectHistory, expectSignedOut, login, register, transact } from '../support/ui';
+import { expectAccountPage, expectSignedOut, login, register, transact } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
     `${example.id} ${example.title}`,
@@ -23,48 +23,35 @@ for (const example of cases) {
         yield* page.use((native) => expect(native).toHaveURL(/\/$/));
         yield* expectSignedOut(page);
         yield* login(page, sender.accountId, sender.password);
-        yield* expectAccount(page, { balance: 0, historyCount: 0 });
-        yield* page
-          .locator('article')
-          .first()
-          .getByRole('heading', { name: senderResult.name, exact: true })
-          .use((native) => expect(native).toBeVisible());
+        yield* expectAccountPage(page).toHaveBalance(0);
+        yield* expectAccountPage(page).toHaveHistoryCount(0);
+        yield* expectAccountPage(page).toHaveName(senderResult.name);
         yield* transact(page, 'deposit', 1000, 1000, 1);
         yield* transact(page, 'withdraw', 200, 800, 2);
         const recipientContext = yield* browser.newContext({ baseURL });
         const recipientPage = yield* recipientContext.newPage;
         yield* login(recipientPage, recipient.accountId, recipient.password);
-        yield* expectAccount(recipientPage, {
-          balance: recipient.balance,
-          historyCount: recipient.deposits.length,
-        });
+        yield* expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
+        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
         yield* page.getByTestId('t1').fill(recipient.accountId);
         yield* page.getByTestId('t2').fill(example.inputs.Amount);
         yield* page.getByTestId('tc').click();
 
-        yield* expectAccount(page, {
-          balance: senderResult.balance,
-          historyCount: senderResult.transactions.length,
-        });
-        yield* expectHistory(page, { transactions: senderResult.transactions });
+        yield* expectAccountPage(page).toHaveBalance(senderResult.balance);
+        yield* expectAccountPage(page).toHaveHistoryCount(senderResult.transactions.length);
+        yield* expectAccountPage(page).toHaveHistory(senderResult.transactions);
         yield* recipientPage.reload();
-        yield* expectAccount(recipientPage, {
-          balance: recipientResult.balance,
-          historyCount: recipientResult.transactions.length,
-        });
-        yield* expectHistory(recipientPage, { transactions: recipientResult.transactions });
+        yield* expectAccountPage(recipientPage).toHaveBalance(recipientResult.balance);
+        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipientResult.transactions.length);
+        yield* expectAccountPage(recipientPage).toHaveHistory(recipientResult.transactions);
         yield* page.reload();
         yield* recipientPage.reload();
-        yield* expectAccount(page, {
-          balance: senderResult.balance,
-          historyCount: senderResult.transactions.length,
-        });
-        yield* expectHistory(page, { transactions: senderResult.transactions });
-        yield* expectAccount(recipientPage, {
-          balance: recipientResult.balance,
-          historyCount: recipientResult.transactions.length,
-        });
-        yield* expectHistory(recipientPage, { transactions: recipientResult.transactions });
+        yield* expectAccountPage(page).toHaveBalance(senderResult.balance);
+        yield* expectAccountPage(page).toHaveHistoryCount(senderResult.transactions.length);
+        yield* expectAccountPage(page).toHaveHistory(senderResult.transactions);
+        yield* expectAccountPage(recipientPage).toHaveBalance(recipientResult.balance);
+        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipientResult.transactions.length);
+        yield* expectAccountPage(recipientPage).toHaveHistory(recipientResult.transactions);
       }),
   );
 }

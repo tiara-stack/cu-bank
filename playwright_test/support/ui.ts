@@ -65,45 +65,51 @@ export const login = Effect.fn('login')(function* (
   yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
 });
 
-export const expectAccount = Effect.fn('expectAccount')(function* (
-  page: Playwright.Page,
-  { balance, historyCount }: { balance: number; historyCount: number },
-) {
+export function expectAccountPage(page: Playwright.Page) {
   const summary = page.locator('article').first();
-  yield* summary
-    .getByRole('heading', { name: 'Balance:', exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* summary
-    .getByRole('heading', { level: 1 })
-    .nth(2)
-    .use((locator) => expect(locator).toHaveText(String(balance)));
-  yield* page
-    .locator('.history-list p')
-    .filter({ hasText: /^amount: / })
-    .use((locator) => expect(locator).toHaveCount(historyCount));
-});
-
-export const expectHistory = Effect.fn('expectHistory')(function* (
-  page: Playwright.Page,
-  { transactions }: { transactions: ReadonlyArray<TransactionExpectation> },
-) {
-  const records = page.locator('.history-list > .account-form > div');
-  yield* records.use((locator) => expect(locator).toHaveCount(transactions.length));
-  for (const [index, transaction] of transactions.entries()) {
-    const record = records.nth(index);
-    yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(transaction.title));
-    yield* record
-      .getByText(`target: ${transaction.target}`, { exact: true })
-      .use((locator) => expect(locator).toBeVisible());
-    yield* record
-      .getByText(`amount: ${transaction.amount}`, { exact: true })
-      .use((locator) => expect(locator).toBeVisible());
-    yield* record
-      .getByText(`balance: ${transaction.balance}`, { exact: true })
-      .use((locator) => expect(locator).toBeVisible());
-    yield* expectHistoryDate(record);
-  }
-});
+  return {
+    toHaveBalance: Effect.fn('expectAccountPage.toHaveBalance')(function* (balance: number) {
+      yield* summary
+        .getByRole('heading', { name: 'Balance:', exact: true })
+        .use((locator) => expect(locator).toBeVisible());
+      yield* summary
+        .getByRole('heading', { level: 1 })
+        .nth(2)
+        .use((locator) => expect(locator).toHaveText(String(balance)));
+    }),
+    toHaveHistoryCount: Effect.fn('expectAccountPage.toHaveHistoryCount')(function* (count: number) {
+      yield* page
+        .locator('.history-list p')
+        .filter({ hasText: /^amount: / })
+        .use((locator) => expect(locator).toHaveCount(count));
+    }),
+    toHaveHistory: Effect.fn('expectAccountPage.toHaveHistory')(function* (
+      transactions: ReadonlyArray<TransactionExpectation>,
+    ) {
+      const records = page.locator('.history-list > .account-form > div');
+      yield* records.use((locator) => expect(locator).toHaveCount(transactions.length));
+      for (const [index, transaction] of transactions.entries()) {
+        const record = records.nth(index);
+        yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(transaction.title));
+        yield* record
+          .getByText(`target: ${transaction.target}`, { exact: true })
+          .use((locator) => expect(locator).toBeVisible());
+        yield* record
+          .getByText(`amount: ${transaction.amount}`, { exact: true })
+          .use((locator) => expect(locator).toBeVisible());
+        yield* record
+          .getByText(`balance: ${transaction.balance}`, { exact: true })
+          .use((locator) => expect(locator).toBeVisible());
+        yield* expectHistoryDate(record);
+      }
+    }),
+    toHaveName: Effect.fn('expectAccountPage.toHaveName')(function* (name: string) {
+      yield* summary
+        .getByRole('heading', { name, exact: true })
+        .use((locator) => expect(locator).toBeVisible());
+    }),
+  };
+}
 
 const expectHistoryDate = Effect.fn('expectHistoryDate')(function* (record: Playwright.Locator) {
   const text = yield* record.getByText(/^date:/).innerText();
@@ -122,7 +128,8 @@ export const transact = Effect.fn('transact')(function* (
   const [input, confirm] = action === 'deposit' ? ['d1', 'dc'] : ['w1', 'wc'];
   yield* page.getByTestId(input).fill(String(amount));
   yield* page.getByTestId(confirm).click();
-  yield* expectAccount(page, { balance, historyCount: count });
+  yield* expectAccountPage(page).toHaveBalance(balance);
+  yield* expectAccountPage(page).toHaveHistoryCount(count);
   const record = page.locator('.history-list > .account-form > div').last();
   yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(action));
   yield* record

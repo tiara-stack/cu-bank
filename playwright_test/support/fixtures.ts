@@ -12,7 +12,7 @@ import {
   type AccountOutcome,
   type ExpectedAccounts,
 } from '../data/account-outcome';
-import { expectAccount, expectHistory, login, register, transact } from './ui';
+import { expectAccountPage, login, register, transact } from './ui';
 
 const clearAccounts = Effect.fn('clearAccounts')(function* () {
   const uri = process.env.PLAYWRIGHT_MONGO_URI;
@@ -41,18 +41,13 @@ const seedAccount = Effect.fn('seedAccount')(function* (
   const page = yield* context.newPage;
   yield* register(page, account);
   yield* login(page, account.accountId, account.password);
-  yield* expectAccount(page, { balance: 0, historyCount: 0 });
+  yield* expectAccountPage(page).toHaveBalance(0);
+  yield* expectAccountPage(page).toHaveHistoryCount(0);
   const history = yield* fundAccount(page, account.deposits);
-  yield* expectAccount(page, { balance: account.balance, historyCount: history.length });
-  yield* expectHistory(page, { transactions: history });
-  yield* page
-    .locator('article')
-    .first()
-    .getByRole('heading', {
-      name: `${account.firstName} ${account.lastName}`,
-      exact: true,
-    })
-    .use((native) => expect(native).toBeVisible());
+  yield* expectAccountPage(page).toHaveBalance(account.balance);
+  yield* expectAccountPage(page).toHaveHistoryCount(history.length);
+  yield* expectAccountPage(page).toHaveHistory(history);
+  yield* expectAccountPage(page).toHaveName(`${account.firstName} ${account.lastName}`);
 });
 
 const prepareAccounts = Effect.fn('prepareAccounts')(function* ({
