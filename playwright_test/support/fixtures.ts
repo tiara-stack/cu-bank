@@ -1,5 +1,5 @@
 import { test as base, type Browser } from '@playwright/test';
-import { expect, makeMethods } from 'effect-playwright/test';
+import { makeMethods } from 'effect-playwright/test';
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { Db, DocumentCollection, MongoClient } from 'effect-mongodb';
@@ -105,4 +105,4 @@ export function testFor(example: Pick<TestCase, 'accountState' | 'accountOutcome
   );
 }
 
-export { expect };
+export { expect } from './matchers';

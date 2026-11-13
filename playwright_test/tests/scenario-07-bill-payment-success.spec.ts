@@ -25,9 +25,9 @@ for (const example of cases) {
       const category = categories[example.inputs['Target Payment']];
       yield* page.getByTestId(category.cid).check();
       for (const choice of Object.values(categories)) {
-        yield* page
-          .getByTestId(choice.cid)
-          .use((native) => expect(native).toBeChecked({ checked: choice.cid === category.cid }));
+        yield* Effect.promise(() =>
+          expect(page.getByTestId(choice.cid)).toBeChecked({ checked: choice.cid === category.cid }),
+        );
       }
       yield* page.getByTestId('b4').fill(example.inputs.Amount);
       yield* page.getByTestId('bc').click();

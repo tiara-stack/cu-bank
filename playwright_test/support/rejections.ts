@@ -1,6 +1,7 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
+import { expect } from './matchers';
 
 export function expectRejection(
   error: Playwright.Locator,
@@ -20,7 +21,7 @@ export function expectRejection(
           )
           .toBe(message);
       } else {
-        yield* error.use((locator) => expect.soft(locator).toHaveText(message));
+        yield* Effect.promise(() => expect.soft(error).toHaveText(message));
       }
     }),
   };

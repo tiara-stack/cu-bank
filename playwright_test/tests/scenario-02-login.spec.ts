@@ -23,9 +23,9 @@ for (const example of cases) {
         yield* page.getByTestId('l2').fill(example.inputs.Password);
         yield* page.getByTestId('lc').click();
         const error = page.getByTestId('login-error-mes');
-        yield* error.use((native) => expect(native).toBeVisible());
-        yield* error.use((native) => expect.soft(native).toHaveText(example.message!));
-        yield* page.use((native) => expect(native).toHaveURL(/\/$/));
+        yield* Effect.promise(() => expect(error).toBeVisible());
+        yield* Effect.promise(() => expect.soft(error).toHaveText(example.message!));
+        yield* Effect.promise(() => expect(page).toHaveURL(/\/$/));
         yield* expectSignedOut(page);
         expect(dialogs).toEqual([]);
         yield* page.reload();

@@ -20,7 +20,7 @@ for (const example of cases) {
           test.info().attach('registration-alert', { body: message, contentType: 'text/plain' }),
         );
         expect.soft(message, 'Workbook registration success wording').toBe('success');
-        yield* page.use((native) => expect(native).toHaveURL(/\/$/));
+        yield* Effect.promise(() => expect(page).toHaveURL(/\/$/));
         yield* expectSignedOut(page);
         yield* login(page, sender.accountId, sender.password);
         yield* expectAccountPage(page).toHaveBalance(0);

@@ -1,18 +1,17 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
+import { expect } from './matchers';
 import type { TransactionExpectation } from '../data/account-outcome';
 
 export const expectSignedOut = Effect.fn('expectSignedOut')(function* (page: Playwright.Page) {
-  yield* page
-    .getByRole('link', { name: 'LOG IN', exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* page
-    .getByRole('link', { name: 'Register', exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* page
-    .getByRole('link', { name: 'LOG OUT', exact: true })
-    .use((locator) => expect(locator).toHaveCount(0));
+  yield* Effect.promise(() => expect(page.getByRole('link', { name: 'LOG IN', exact: true })).toBeVisible());
+  yield* Effect.promise(() =>
+    expect(page.getByRole('link', { name: 'Register', exact: true })).toBeVisible(),
+  );
+  yield* Effect.promise(() =>
+    expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toHaveCount(0),
+  );
 });
 
 export const register = Effect.fn('register')(function* (
@@ -36,7 +35,7 @@ export const register = Effect.fn('register')(function* (
     return { message, type };
   });
   expect(dialogInfo.type).toBe('alert');
-  yield* page.use((native) => expect(native).toHaveURL(/\/$/));
+  yield* Effect.promise(() => expect(page).toHaveURL(/\/$/));
   return dialogInfo.message;
 });
 
@@ -49,64 +48,54 @@ export const login = Effect.fn('login')(function* (
   yield* page.getByTestId('l1').fill(accountId);
   yield* page.getByTestId('l2').fill(password);
   yield* page.getByTestId('lc').click();
-  yield* page.use((native) => expect(native).toHaveURL(/\/account\/?$/));
-  yield* page
-    .getByRole('link', { name: 'Account', exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* page
-    .getByRole('link', { name: 'LOG OUT', exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* page
-    .getByRole('link', { name: 'LOG IN', exact: true })
-    .use((locator) => expect(locator).toHaveCount(0));
-  yield* page
-    .getByRole('link', { name: 'Register', exact: true })
-    .use((locator) => expect(locator).toHaveCount(0));
-  yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
+  yield* Effect.promise(() => expect(page).toHaveURL(/\/account\/?$/));
+  yield* Effect.promise(() => expect(page.getByRole('link', { name: 'Account', exact: true })).toBeVisible());
+  yield* Effect.promise(() => expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible());
+  yield* Effect.promise(() => expect(page.getByRole('link', { name: 'LOG IN', exact: true })).toHaveCount(0));
+  yield* Effect.promise(() =>
+    expect(page.getByRole('link', { name: 'Register', exact: true })).toHaveCount(0),
+  );
+  yield* Effect.promise(() => expect(page.getByText('Loading...', { exact: true })).toHaveCount(0));
 });
 
 export function expectAccountPage(page: Playwright.Page) {
   const summary = page.locator('article').first();
   return {
     toHaveBalance: Effect.fn('expectAccountPage.toHaveBalance')(function* (balance: number) {
-      yield* summary
-        .getByRole('heading', { name: 'Balance:', exact: true })
-        .use((locator) => expect(locator).toBeVisible());
-      yield* summary
-        .getByRole('heading', { level: 1 })
-        .nth(2)
-        .use((locator) => expect(locator).toHaveText(String(balance)));
+      yield* Effect.promise(() =>
+        expect(summary.getByRole('heading', { name: 'Balance:', exact: true })).toBeVisible(),
+      );
+      yield* Effect.promise(() =>
+        expect(summary.getByRole('heading', { level: 1 }).nth(2)).toHaveText(String(balance)),
+      );
     }),
     toHaveHistoryCount: Effect.fn('expectAccountPage.toHaveHistoryCount')(function* (count: number) {
-      yield* page
-        .locator('.history-list p')
-        .filter({ hasText: /^amount: / })
-        .use((locator) => expect(locator).toHaveCount(count));
+      yield* Effect.promise(() =>
+        expect(page.locator('.history-list p').filter({ hasText: /^amount: / })).toHaveCount(count),
+      );
     }),
     toHaveHistory: Effect.fn('expectAccountPage.toHaveHistory')(function* (
       transactions: ReadonlyArray<TransactionExpectation>,
     ) {
       const records = page.locator('.history-list > .account-form > div');
-      yield* records.use((locator) => expect(locator).toHaveCount(transactions.length));
+      yield* Effect.promise(() => expect(records).toHaveCount(transactions.length));
       for (const [index, transaction] of transactions.entries()) {
         const record = records.nth(index);
-        yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(transaction.title));
-        yield* record
-          .getByText(`target: ${transaction.target}`, { exact: true })
-          .use((locator) => expect(locator).toBeVisible());
-        yield* record
-          .getByText(`amount: ${transaction.amount}`, { exact: true })
-          .use((locator) => expect(locator).toBeVisible());
-        yield* record
-          .getByText(`balance: ${transaction.balance}`, { exact: true })
-          .use((locator) => expect(locator).toBeVisible());
+        yield* Effect.promise(() => expect(record.getByRole('heading')).toHaveText(transaction.title));
+        yield* Effect.promise(() =>
+          expect(record.getByText(`target: ${transaction.target}`, { exact: true })).toBeVisible(),
+        );
+        yield* Effect.promise(() =>
+          expect(record.getByText(`amount: ${transaction.amount}`, { exact: true })).toBeVisible(),
+        );
+        yield* Effect.promise(() =>
+          expect(record.getByText(`balance: ${transaction.balance}`, { exact: true })).toBeVisible(),
+        );
         yield* expectHistoryDate(record);
       }
     }),
     toHaveName: Effect.fn('expectAccountPage.toHaveName')(function* (name: string) {
-      yield* summary
-        .getByRole('heading', { name, exact: true })
-        .use((locator) => expect(locator).toBeVisible());
+      yield* Effect.promise(() => expect(summary.getByRole('heading', { name, exact: true })).toBeVisible());
     }),
   };
 }
@@ -131,13 +120,9 @@ export const transact = Effect.fn('transact')(function* (
   yield* expectAccountPage(page).toHaveBalance(balance);
   yield* expectAccountPage(page).toHaveHistoryCount(count);
   const record = page.locator('.history-list > .account-form > div').last();
-  yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(action));
-  yield* record
-    .getByText(`amount: ${amount}`, { exact: true })
-    .use((locator) => expect(locator).toBeVisible());
-  yield* record
-    .getByText(`balance: ${balance}`, { exact: true })
-    .use((locator) => expect(locator).toBeVisible());
+  yield* Effect.promise(() => expect(record.getByRole('heading')).toHaveText(action));
+  yield* Effect.promise(() => expect(record.getByText(`amount: ${amount}`, { exact: true })).toBeVisible());
+  yield* Effect.promise(() => expect(record.getByText(`balance: ${balance}`, { exact: true })).toBeVisible());
   yield* expectHistoryDate(record);
 });
 

@@ -24,22 +24,22 @@ for (const example of cases) {
         const historyBefore = yield* page.locator('.history-list').innerText();
         const validation = yield* recordNativeValidation(amount);
         yield* page.getByTestId('tc').click();
-        if (!validation.valid) yield* amount.use((native) => expect(native).toBeFocused());
+        if (!validation.valid) yield* Effect.promise(() => expect(amount).toBeFocused());
         yield* expectRejection(page.getByTestId('transfer-error-mes'), {
           validation,
         }).toHaveMessage(example.message!);
 
         yield* page.reload();
-        yield* page.getByText('Loading...', { exact: true }).use((locator) => expect(locator).toHaveCount(0));
+        yield* Effect.promise(() => expect(page.getByText('Loading...', { exact: true })).toHaveCount(0));
         yield* expectAccountPage(page).toHaveBalance(expectedAccounts.sender.balance);
         yield* expectAccountPage(page).toHaveHistoryCount(expectedAccounts.sender.transactions.length);
         yield* expectAccountPage(page).toHaveHistory(expectedAccounts.sender.transactions);
-        yield* page
-          .locator('.history-list')
-          .use((native) => expect(native).toHaveText(historyBefore, { useInnerText: true }));
-        yield* page
-          .getByRole('link', { name: 'LOG OUT', exact: true })
-          .use((locator) => expect(locator).toBeVisible());
+        yield* Effect.promise(() =>
+          expect(page.locator('.history-list')).toHaveText(historyBefore, { useInnerText: true }),
+        );
+        yield* Effect.promise(() =>
+          expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible(),
+        );
         const recipientContext = yield* browser.newContext({ baseURL });
         const recipient = accountState.accounts.recipient;
         const recipientPage = yield* recipientContext.newPage;
