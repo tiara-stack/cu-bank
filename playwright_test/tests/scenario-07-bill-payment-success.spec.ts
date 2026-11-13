@@ -2,6 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
 import { expect, testFor } from '../support/fixtures';
+import { fillBillPaymentForm } from '../support/forms';
 import { expectAccountPage, login } from '../support/ui';
 const categories: Record<
   string,
@@ -29,7 +30,7 @@ for (const example of cases) {
           expect(page.getByTestId(choice.cid)).toBeChecked({ checked: choice.cid === category.cid }),
         );
       }
-      yield* page.getByTestId('b4').fill(example.inputs.Amount);
+      yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
       yield* page.getByTestId('bc').click();
 
       yield* expectAccountPage(page).toHaveBalance(expected.balance);

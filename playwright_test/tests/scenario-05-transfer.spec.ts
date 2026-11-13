@@ -2,8 +2,9 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-05-transfer';
 import { expect, testFor } from '../support/fixtures';
+import { fillTransferForm } from '../support/forms';
 import { expectRejection } from '../support/rejections';
-import { enterAmount, expectAccountPage, login, transact, recordNativeValidation } from '../support/ui';
+import { expectAccountPage, login, transact, recordNativeValidation } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
     `${example.id} ${example.title}`,
@@ -18,9 +19,10 @@ for (const example of cases) {
         yield* transact(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1);
         yield* transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2);
         const browser = yield* Playwright.Browser;
-        yield* page.getByTestId('t1').fill(example.inputs['Transfer Target']);
-        const amount = page.getByTestId('t2');
-        yield* enterAmount(amount, example.inputs['Transfer Amount']);
+        const amount = yield* fillTransferForm(page, {
+          recipientAccountId: example.inputs['Transfer Target'],
+          amount: example.inputs['Transfer Amount'],
+        });
         const historyBefore = yield* page.locator('.history-list').innerText();
         const validation = yield* recordNativeValidation(amount);
         yield* page.getByTestId('tc').click();

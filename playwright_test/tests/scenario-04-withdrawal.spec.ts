@@ -2,8 +2,9 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-04-withdrawal';
 import { expect, testFor } from '../support/fixtures';
+import { fillWithdrawalForm } from '../support/forms';
 import { expectRejection } from '../support/rejections';
-import { enterAmount, expectAccountPage, login, transact, recordNativeValidation } from '../support/ui';
+import { expectAccountPage, login, transact, recordNativeValidation } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
     Effect.gen(function* () {
@@ -13,8 +14,7 @@ for (const example of cases) {
       yield* expectAccountPage(page).toHaveBalance(sender.balance);
       yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
       yield* transact(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1);
-      const amount = page.getByTestId('w1');
-      yield* enterAmount(amount, example.inputs['Withdraw Amount']);
+      const amount = yield* fillWithdrawalForm(page, { amount: example.inputs['Withdraw Amount'] });
       const historyBefore = yield* page.locator('.history-list').innerText();
       const validation = yield* recordNativeValidation(amount);
       yield* page.getByTestId('wc').click();

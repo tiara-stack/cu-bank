@@ -2,6 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-02-login';
 import { expect, testFor } from '../support/fixtures';
+import { fillLoginForm } from '../support/forms';
 import { expectSignedOut, login, expectAccountPage } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
@@ -19,8 +20,10 @@ for (const example of cases) {
             await dialog.dismiss();
           });
         });
-        yield* page.getByTestId('l1').fill(example.inputs['Account Number']);
-        yield* page.getByTestId('l2').fill(example.inputs.Password);
+        yield* fillLoginForm(page, {
+          accountId: example.inputs['Account Number'],
+          password: example.inputs.Password,
+        });
         yield* page.getByTestId('lc').click();
         const error = page.getByTestId('login-error-mes');
         yield* Effect.promise(() => expect(error).toBeVisible());

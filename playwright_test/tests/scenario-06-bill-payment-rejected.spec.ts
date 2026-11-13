@@ -2,8 +2,9 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-06-bill-payment-rejected';
 import { expect, testFor } from '../support/fixtures';
+import { fillBillPaymentForm } from '../support/forms';
 import { expectRejection } from '../support/rejections';
-import { enterAmount, expectAccountPage, login, recordNativeValidation } from '../support/ui';
+import { expectAccountPage, login, recordNativeValidation } from '../support/ui';
 for (const example of cases.filter((item) => item.details.tag.includes('@bill-category-selected'))) {
   testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
     Effect.gen(function* () {
@@ -13,8 +14,7 @@ for (const example of cases.filter((item) => item.details.tag.includes('@bill-ca
       yield* expectAccountPage(page).toHaveBalance(sender.balance);
       yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
       yield* page.getByTestId('b1').check();
-      const amount = page.getByTestId('b4');
-      yield* enterAmount(amount, example.inputs.Amount);
+      const amount = yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
       const historyBefore = yield* page.locator('.history-list').innerText();
       const validation = yield* recordNativeValidation(amount);
       yield* page.getByTestId('bc').click();
@@ -45,8 +45,7 @@ for (const example of cases.filter((item) => item.details.tag.includes('@bill-ca
       yield* login(page, sender.accountId, sender.password);
       yield* expectAccountPage(page).toHaveBalance(sender.balance);
       yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
-      const amount = page.getByTestId('b4');
-      yield* enterAmount(amount, example.inputs.Amount);
+      yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
       const historyBefore = yield* page.locator('.history-list').innerText();
       const validation = yield* recordNativeValidation(page.getByTestId('b1'));
       yield* page.getByTestId('bc').click();

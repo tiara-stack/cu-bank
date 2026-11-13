@@ -2,6 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-08-registration-journey';
 import { test, expect, testFor } from '../support/fixtures';
+import { fillTransferForm } from '../support/forms';
 import { expectAccountPage, expectSignedOut, login, register, transact } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
@@ -33,8 +34,10 @@ for (const example of cases) {
         yield* login(recipientPage, recipient.accountId, recipient.password);
         yield* expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
         yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
-        yield* page.getByTestId('t1').fill(recipient.accountId);
-        yield* page.getByTestId('t2').fill(example.inputs.Amount);
+        yield* fillTransferForm(page, {
+          recipientAccountId: recipient.accountId,
+          amount: example.inputs.Amount,
+        });
         yield* page.getByTestId('tc').click();
 
         yield* expectAccountPage(page).toHaveBalance(senderResult.balance);

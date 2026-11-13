@@ -3,6 +3,7 @@ import { Playwright } from 'effect-playwright';
 import { test } from '@playwright/test';
 import { expect } from './matchers';
 import type { TransactionExpectation } from '../data/account-outcome';
+import { fillDepositForm, fillLoginForm, fillRegistrationForm, fillWithdrawalForm } from './forms';
 
 export const expectSignedOut = Effect.fn('expectSignedOut')(function* (page: Playwright.Page) {
   yield* Effect.promise(() => expect(page.getByRole('link', { name: 'LOG IN', exact: true })).toBeVisible());
@@ -19,10 +20,7 @@ export const register = Effect.fn('register')(function* (
   account: { accountId: string; password: string; firstName: string; lastName: string },
 ) {
   yield* page.goto('/register');
-  yield* page.getByTestId('r1').fill(account.accountId);
-  yield* page.getByTestId('r2').fill(account.password);
-  yield* page.getByTestId('r3').fill(account.firstName);
-  yield* page.getByTestId('r4').fill(account.lastName);
+  yield* fillRegistrationForm(page, account);
   // Arm the listener before clicking, then accept the dialog before awaiting the click.
   const dialogInfo = yield* page.use(async (native) => {
     const dialogPromise = native.waitForEvent('dialog');
@@ -45,8 +43,7 @@ export const login = Effect.fn('login')(function* (
   password = '1234',
 ) {
   yield* page.goto('/');
-  yield* page.getByTestId('l1').fill(accountId);
-  yield* page.getByTestId('l2').fill(password);
+  yield* fillLoginForm(page, { accountId, password });
   yield* page.getByTestId('lc').click();
   yield* Effect.promise(() => expect(page).toHaveURL(/\/account\/?$/));
   yield* Effect.promise(() => expect(page.getByRole('link', { name: 'Account', exact: true })).toBeVisible());
@@ -114,9 +111,12 @@ export const transact = Effect.fn('transact')(function* (
   balance: number,
   count: number,
 ) {
-  const [input, confirm] = action === 'deposit' ? ['d1', 'dc'] : ['w1', 'wc'];
-  yield* page.getByTestId(input).fill(String(amount));
-  yield* page.getByTestId(confirm).click();
+  const form =
+    action === 'deposit'
+      ? { fill: fillDepositForm, confirm: 'dc' }
+      : { fill: fillWithdrawalForm, confirm: 'wc' };
+  yield* form.fill(page, { amount: String(amount) });
+  yield* page.getByTestId(form.confirm).click();
   yield* expectAccountPage(page).toHaveBalance(balance);
   yield* expectAccountPage(page).toHaveHistoryCount(count);
   const record = page.locator('.history-list > .account-form > div').last();
@@ -124,12 +124,6 @@ export const transact = Effect.fn('transact')(function* (
   yield* Effect.promise(() => expect(record.getByText(`amount: ${amount}`, { exact: true })).toBeVisible());
   yield* Effect.promise(() => expect(record.getByText(`balance: ${balance}`, { exact: true })).toBeVisible());
   yield* expectHistoryDate(record);
-});
-
-export const enterAmount = Effect.fn('enterAmount')(function* (input: Playwright.Locator, amount: string) {
-  yield* input.fill('');
-  // Ordinary keyboard input preserves the browser's number/step constraints.
-  yield* input.pressSequentially(amount);
 });
 
 export const recordNativeValidation = Effect.fn('recordNativeValidation')(function* (

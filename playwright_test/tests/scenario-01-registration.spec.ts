@@ -2,6 +2,7 @@ import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-01-registration';
 import { expect, testFor } from '../support/fixtures';
+import { fillRegistrationForm } from '../support/forms';
 import { expectSignedOut, login, expectAccountPage } from '../support/ui';
 for (const example of cases) {
   testFor(example).effect(
@@ -19,10 +20,12 @@ for (const example of cases) {
             await dialog.dismiss();
           });
         });
-        yield* page.getByTestId('r1').fill(example.inputs['Account Number']);
-        yield* page.getByTestId('r2').fill(example.inputs.Password);
-        yield* page.getByTestId('r3').fill(example.inputs.Firstname);
-        yield* page.getByTestId('r4').fill(example.inputs.Lastname);
+        yield* fillRegistrationForm(page, {
+          accountId: example.inputs['Account Number'],
+          password: example.inputs.Password,
+          firstName: example.inputs.Firstname,
+          lastName: example.inputs.Lastname,
+        });
         yield* page.getByTestId('rc').click();
         const error = page.getByTestId('register-error-mes');
         yield* Effect.promise(() => expect(error).toBeVisible());
