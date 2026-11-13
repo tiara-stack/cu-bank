@@ -67,8 +67,7 @@ export const login = Effect.fn('login')(function* (
 
 export const expectAccount = Effect.fn('expectAccount')(function* (
   page: Playwright.Page,
-  balance: number,
-  historyCount: number,
+  { balance, historyCount }: { balance: number; historyCount: number },
 ) {
   const summary = page.locator('article').first();
   yield* summary
@@ -86,11 +85,11 @@ export const expectAccount = Effect.fn('expectAccount')(function* (
 
 export const expectHistory = Effect.fn('expectHistory')(function* (
   page: Playwright.Page,
-  history: ReadonlyArray<TransactionExpectation>,
+  { transactions }: { transactions: ReadonlyArray<TransactionExpectation> },
 ) {
   const records = page.locator('.history-list > .account-form > div');
-  yield* records.use((locator) => expect(locator).toHaveCount(history.length));
-  for (const [index, transaction] of history.entries()) {
+  yield* records.use((locator) => expect(locator).toHaveCount(transactions.length));
+  for (const [index, transaction] of transactions.entries()) {
     const record = records.nth(index);
     yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(transaction.title));
     yield* record
@@ -123,7 +122,7 @@ export const transact = Effect.fn('transact')(function* (
   const [input, confirm] = action === 'deposit' ? ['d1', 'dc'] : ['w1', 'wc'];
   yield* page.getByTestId(input).fill(String(amount));
   yield* page.getByTestId(confirm).click();
-  yield* expectAccount(page, balance, count);
+  yield* expectAccount(page, { balance, historyCount: count });
   const record = page.locator('.history-list > .account-form > div').last();
   yield* record.getByRole('heading').use((locator) => expect(locator).toHaveText(action));
   yield* record

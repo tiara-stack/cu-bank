@@ -23,7 +23,7 @@ for (const example of cases) {
         yield* page.use((native) => expect(native).toHaveURL(/\/$/));
         yield* expectSignedOut(page);
         yield* login(page, sender.accountId, sender.password);
-        yield* expectAccount(page, 0, 0);
+        yield* expectAccount(page, { balance: 0, historyCount: 0 });
         yield* page
           .locator('article')
           .first()
@@ -34,22 +34,37 @@ for (const example of cases) {
         const recipientContext = yield* browser.newContext({ baseURL });
         const recipientPage = yield* recipientContext.newPage;
         yield* login(recipientPage, recipient.accountId, recipient.password);
-        yield* expectAccount(recipientPage, recipient.balance, recipient.deposits.length);
+        yield* expectAccount(recipientPage, {
+          balance: recipient.balance,
+          historyCount: recipient.deposits.length,
+        });
         yield* page.getByTestId('t1').fill(recipient.accountId);
         yield* page.getByTestId('t2').fill(example.inputs.Amount);
         yield* page.getByTestId('tc').click();
 
-        yield* expectAccount(page, senderResult.balance, senderResult.transactions.length);
-        yield* expectHistory(page, senderResult.transactions);
+        yield* expectAccount(page, {
+          balance: senderResult.balance,
+          historyCount: senderResult.transactions.length,
+        });
+        yield* expectHistory(page, { transactions: senderResult.transactions });
         yield* recipientPage.reload();
-        yield* expectAccount(recipientPage, recipientResult.balance, recipientResult.transactions.length);
-        yield* expectHistory(recipientPage, recipientResult.transactions);
+        yield* expectAccount(recipientPage, {
+          balance: recipientResult.balance,
+          historyCount: recipientResult.transactions.length,
+        });
+        yield* expectHistory(recipientPage, { transactions: recipientResult.transactions });
         yield* page.reload();
         yield* recipientPage.reload();
-        yield* expectAccount(page, senderResult.balance, senderResult.transactions.length);
-        yield* expectHistory(page, senderResult.transactions);
-        yield* expectAccount(recipientPage, recipientResult.balance, recipientResult.transactions.length);
-        yield* expectHistory(recipientPage, recipientResult.transactions);
+        yield* expectAccount(page, {
+          balance: senderResult.balance,
+          historyCount: senderResult.transactions.length,
+        });
+        yield* expectHistory(page, { transactions: senderResult.transactions });
+        yield* expectAccount(recipientPage, {
+          balance: recipientResult.balance,
+          historyCount: recipientResult.transactions.length,
+        });
+        yield* expectHistory(recipientPage, { transactions: recipientResult.transactions });
       }),
   );
 }

@@ -19,7 +19,7 @@ for (const example of cases) {
       const page = yield* Playwright.Page;
       const sender = accountState.accounts.sender;
       yield* login(page, sender.accountId, sender.password);
-      yield* expectAccount(page, sender.balance, sender.deposits.length);
+      yield* expectAccount(page, { balance: sender.balance, historyCount: sender.deposits.length });
       const expected = expectedAccounts.sender;
       const category = categories[example.inputs['Target Payment']];
       yield* page.getByTestId(category.cid).check();
@@ -31,11 +31,11 @@ for (const example of cases) {
       yield* page.getByTestId('b4').fill(example.inputs.Amount);
       yield* page.getByTestId('bc').click();
 
-      yield* expectAccount(page, expected.balance, expected.transactions.length);
-      yield* expectHistory(page, expected.transactions);
+      yield* expectAccount(page, { balance: expected.balance, historyCount: expected.transactions.length });
+      yield* expectHistory(page, { transactions: expected.transactions });
       yield* page.reload();
-      yield* expectAccount(page, expected.balance, expected.transactions.length);
-      yield* expectHistory(page, expected.transactions);
+      yield* expectAccount(page, { balance: expected.balance, historyCount: expected.transactions.length });
+      yield* expectHistory(page, { transactions: expected.transactions });
     }),
   );
 }

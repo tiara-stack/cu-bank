@@ -36,16 +36,22 @@ for (const example of cases) {
         const senderContext = yield* browser.newContext({ baseURL });
         const senderPage = yield* senderContext.newPage;
         yield* login(senderPage, sender.accountId, sender.password);
-        yield* expectAccount(senderPage, senderResult.balance, senderResult.transactions.length);
-        yield* expectHistory(senderPage, senderResult.transactions);
+        yield* expectAccount(senderPage, {
+          balance: senderResult.balance,
+          historyCount: senderResult.transactions.length,
+        });
+        yield* expectHistory(senderPage, { transactions: senderResult.transactions });
         yield* senderPage
           .locator('article')
           .first()
           .getByRole('heading', { name: senderResult.name, exact: true })
           .use((native) => expect(native).toBeVisible());
         yield* senderPage.reload();
-        yield* expectAccount(senderPage, senderResult.balance, senderResult.transactions.length);
-        yield* expectHistory(senderPage, senderResult.transactions);
+        yield* expectAccount(senderPage, {
+          balance: senderResult.balance,
+          historyCount: senderResult.transactions.length,
+        });
+        yield* expectHistory(senderPage, { transactions: senderResult.transactions });
       }),
   );
 }

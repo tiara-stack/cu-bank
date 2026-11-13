@@ -21,6 +21,17 @@ const clearAccounts = Effect.fn('clearAccounts')(function* () {
   yield* DocumentCollection.deleteMany(Db.documentCollection(MongoClient.db(client), 'users'), {});
 });
 
+const fundAccount = Effect.fn('fundAccount')(function* (
+  page: Playwright.Page,
+  deposits: AccountPrecondition['deposits'],
+) {
+  const history = depositHistory(deposits);
+  for (const [index, transaction] of history.entries()) {
+    yield* transact(page, 'deposit', transaction.amount, transaction.balance, index + 1);
+  }
+  return history;
+});
+
 const seedAccount = Effect.fn('seedAccount')(function* (
   browser: Browser,
   baseURL: string | undefined,
@@ -30,13 +41,10 @@ const seedAccount = Effect.fn('seedAccount')(function* (
   const page = yield* context.newPage;
   yield* register(page, account);
   yield* login(page, account.accountId, account.password);
-  yield* expectAccount(page, 0, 0);
-  const history = depositHistory(account.deposits);
-  for (const [index, transaction] of history.entries()) {
-    yield* transact(page, 'deposit', transaction.amount, transaction.balance, index + 1);
-  }
-  yield* expectAccount(page, account.balance, history.length);
-  yield* expectHistory(page, history);
+  yield* expectAccount(page, { balance: 0, historyCount: 0 });
+  const history = yield* fundAccount(page, account.deposits);
+  yield* expectAccount(page, { balance: account.balance, historyCount: history.length });
+  yield* expectHistory(page, { transactions: history });
   yield* page
     .locator('article')
     .first()
@@ -45,6 +53,21 @@ const seedAccount = Effect.fn('seedAccount')(function* (
       exact: true,
     })
     .use((native) => expect(native).toBeVisible());
+});
+
+const prepareAccounts = Effect.fn('prepareAccounts')(function* ({
+  browser,
+  baseURL,
+  accountState,
+}: {
+  browser: Browser;
+  baseURL: string | undefined;
+  accountState: AccountState;
+}) {
+  yield* Effect.scoped(clearAccounts());
+  for (const account of Object.values(accountState.accounts)) {
+    if (account.exists !== false) yield* Effect.scoped(seedAccount(browser, baseURL, account));
+  }
 });
 
 const fixtures = base.extend<{
@@ -57,20 +80,12 @@ const fixtures = base.extend<{
   accountOutcome: [unchangedAccountOutcome, { option: true }],
   _prepareAccounts: [
     async ({ browser, baseURL, accountState }, use, testInfo) => {
-      const program = Effect.gen(function* () {
-        yield* Effect.scoped(clearAccounts());
-        yield* Effect.promise(() =>
-          testInfo.attach('account-preconditions', {
-            body: JSON.stringify(accountState, null, 2),
-            contentType: 'application/json',
-          }),
-        );
-        for (const account of Object.values(accountState.accounts)) {
-          if (account.exists !== false) yield* Effect.scoped(seedAccount(browser, baseURL, account));
-        }
-        yield* Effect.promise(() => use());
+      await testInfo.attach('account-preconditions', {
+        body: JSON.stringify(accountState, null, 2),
+        contentType: 'application/json',
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(prepareAccounts({ browser, baseURL, accountState }));
+      await use();
     },
     { auto: true },
   ],
