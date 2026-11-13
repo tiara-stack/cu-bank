@@ -1,21 +1,16 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-03-deposit';
-import { test, expect, testFor } from '../support/fixtures';
+import { expect, testFor } from '../support/fixtures';
 import { expectRejectionMessage } from '../support/rejections';
 import { enterAmount, expectAccount, login, expectHistory, recordNativeValidation } from '../support/ui';
-test.beforeEach(({ page: nativePage, accountState }) =>
-  Effect.gen(function* () {
-    const page = Playwright.makePage(nativePage);
-    const sender = accountState.accounts.sender;
-    yield* login(page, sender.accountId, sender.password);
-    yield* expectAccount(page, sender.balance, sender.deposits.length);
-  }).pipe(Effect.scoped, Effect.runPromise),
-);
 for (const example of cases) {
-  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts }) =>
+  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
     Effect.gen(function* () {
       const page = yield* Playwright.Page;
+      const sender = accountState.accounts.sender;
+      yield* login(page, sender.accountId, sender.password);
+      yield* expectAccount(page, sender.balance, sender.deposits.length);
       const amount = page.getByTestId('d1');
       yield* enterAmount(amount, example.inputs['Deposit Amount']);
       const historyBefore = yield* page.locator('.history-list').innerText();

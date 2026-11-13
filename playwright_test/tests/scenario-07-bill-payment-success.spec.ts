@@ -1,16 +1,8 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
-import { test, expect, testFor } from '../support/fixtures';
+import { expect, testFor } from '../support/fixtures';
 import { expectAccount, expectHistory, login } from '../support/ui';
-test.beforeEach(({ page: nativePage, accountState }) =>
-  Effect.gen(function* () {
-    const page = Playwright.makePage(nativePage);
-    const sender = accountState.accounts.sender;
-    yield* login(page, sender.accountId, sender.password);
-    yield* expectAccount(page, sender.balance, sender.deposits.length);
-  }).pipe(Effect.scoped, Effect.runPromise),
-);
 const categories: Record<
   string,
   {
@@ -22,9 +14,12 @@ const categories: Record<
   'Phone Charge': { cid: 'b3' },
 };
 for (const example of cases) {
-  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts }) =>
+  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
     Effect.gen(function* () {
       const page = yield* Playwright.Page;
+      const sender = accountState.accounts.sender;
+      yield* login(page, sender.accountId, sender.password);
+      yield* expectAccount(page, sender.balance, sender.deposits.length);
       const expected = expectedAccounts.sender;
       const category = categories[example.inputs['Target Payment']];
       yield* page.getByTestId(category.cid).check();

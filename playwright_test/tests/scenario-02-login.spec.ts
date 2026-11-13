@@ -1,15 +1,8 @@
 import { Effect } from 'effect';
 import { Playwright } from 'effect-playwright';
 import { cases } from '../data/scenarios/scenario-02-login';
-import { test, expect, testFor } from '../support/fixtures';
+import { expect, testFor } from '../support/fixtures';
 import { expectSignedOut, login, expectAccount, expectHistory } from '../support/ui';
-test.beforeEach(({ page: nativePage }) =>
-  Effect.gen(function* () {
-    const page = Playwright.makePage(nativePage);
-    yield* page.goto('/');
-    yield* expectSignedOut(page);
-  }).pipe(Effect.scoped, Effect.runPromise),
-);
 for (const example of cases) {
   testFor(example).effect(
     `${example.id} ${example.title}`,
@@ -17,6 +10,8 @@ for (const example of cases) {
     ({ expectedAccounts, accountState, baseURL }) =>
       Effect.gen(function* () {
         const page = yield* Playwright.Page;
+        yield* page.goto('/');
+        yield* expectSignedOut(page);
         const dialogs: string[] = [];
         yield* page.use(async (native) => {
           native.on('dialog', async (dialog) => {
