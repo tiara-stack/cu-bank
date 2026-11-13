@@ -21,7 +21,7 @@ export function expectRejection(
           )
           .toBe(message);
       } else {
-        yield* Effect.promise(() => expect.soft(error).toHaveText(message));
+        yield* expect.soft(error).toHaveText(message);
       }
     }),
   };

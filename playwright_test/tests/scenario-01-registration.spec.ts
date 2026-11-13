@@ -28,9 +28,9 @@ for (const example of cases) {
         });
         yield* page.getByTestId('rc').click();
         const error = page.getByTestId('register-error-mes');
-        yield* Effect.promise(() => expect(error).toBeVisible());
-        yield* Effect.promise(() => expect.soft(error).toHaveText(example.message!));
-        yield* Effect.promise(() => expect(page).toHaveURL(/\/register$/));
+        yield* expect(error).toBeVisible();
+        yield* expect.soft(error).toHaveText(example.message!);
+        yield* expect(page).toHaveURL(/\/register$/);
         yield* expectSignedOut(page);
         expect(dialogs).toEqual([]);
         yield* page.reload();

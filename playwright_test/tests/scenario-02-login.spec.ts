@@ -26,9 +26,9 @@ for (const example of cases) {
         });
         yield* page.getByTestId('lc').click();
         const error = page.getByTestId('login-error-mes');
-        yield* Effect.promise(() => expect(error).toBeVisible());
-        yield* Effect.promise(() => expect.soft(error).toHaveText(example.message!));
-        yield* Effect.promise(() => expect(page).toHaveURL(/\/$/));
+        yield* expect(error).toBeVisible();
+        yield* expect.soft(error).toHaveText(example.message!);
+        yield* expect(page).toHaveURL(/\/$/);
         yield* expectSignedOut(page);
         expect(dialogs).toEqual([]);
         yield* page.reload();
