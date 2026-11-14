@@ -29,8 +29,8 @@ for (const testCase of cases) {
 
     await test.step('Expected output: error message, still on Login', async () => {
       const error = page.getByTestId('login-error-mes');
-      await expect(error).toBeVisible();
       await captureActualOutput(page);
+      await expect(error).toBeVisible();
       await expect.soft(error).toHaveText(testCase.message!);
       await expect(page).toHaveURL(/\/$/);
       await expectSignedOut(page);

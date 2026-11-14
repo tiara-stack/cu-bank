@@ -1,7 +1,7 @@
 // Scenario 8 (our own): a new customer registers, logs in, deposits, withdraws and transfers.
 import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-08-registration-journey';
-import { captureActualOutput } from '../support/evidence';
+import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
 import { fillTransferForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
@@ -47,8 +47,7 @@ for (const testCase of cases) {
         amount: testCase.inputs.Amount,
       });
       await page.getByTestId('tc').click();
-      await expectAccountPage(page).toShow(expected.sender);
-      await captureActualOutput(page);
+      await withActualOutput(page, () => expectAccountPage(page).toShow(expected.sender));
     });
 
     await test.step('Post-condition: both accounts updated, also after a reload', async () => {

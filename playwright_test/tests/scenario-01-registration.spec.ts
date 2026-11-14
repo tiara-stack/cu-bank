@@ -31,8 +31,8 @@ for (const testCase of cases) {
 
     await test.step('Expected output: error message, still on Register, no success alert', async () => {
       const error = page.getByTestId('register-error-mes');
-      await expect(error).toBeVisible();
       await captureActualOutput(page);
+      await expect(error).toBeVisible();
       await expect.soft(error).toHaveText(testCase.message!);
       await expect(page).toHaveURL(/\/register$/);
       await expectSignedOut(page);

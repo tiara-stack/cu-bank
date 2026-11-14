@@ -1,7 +1,7 @@
 // Scenario 7: login succeeds, then a bill payment succeeds.
 import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
-import { captureActualOutput } from '../support/evidence';
+import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
 import { fillBillPaymentForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
@@ -37,8 +37,7 @@ for (const testCase of cases) {
     });
 
     await test.step('Expected output: balance reduced, one new history record', async () => {
-      await expectAccountPage(page).toShow(expected.sender);
-      await captureActualOutput(page);
+      await withActualOutput(page, () => expectAccountPage(page).toShow(expected.sender));
     });
 
     await test.step('Post-condition: the result survives a reload', async () => {
