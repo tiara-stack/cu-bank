@@ -1,3 +1,4 @@
+/** One account as it must be before a case starts. `exists: false` means it must not be registered yet. */
 export type AccountPrecondition = {
   accountId: string;
   password: string;
@@ -8,12 +9,17 @@ export type AccountPrecondition = {
   exists?: boolean;
 };
 
+/**
+ * The pre-condition of a case: the accounts that exist, keyed by the role they play in the scenario
+ * (`sender` acts, `recipient` receives transfers), and the account numbers that must not be registered.
+ */
 export type AccountState = {
   accounts: Readonly<Record<string, AccountPrecondition>>;
   absentAccountIds: ReadonlyArray<string>;
 };
 
-const sender: AccountPrecondition = {
+/** Account A: the customer who acts in scenarios 1-7. */
+const accountA: AccountPrecondition = {
   accountId: '1111111111',
   password: '1234',
   firstName: 'Sam',
@@ -22,7 +28,11 @@ const sender: AccountPrecondition = {
   deposits: [],
 };
 
-const recipient: AccountPrecondition = {
+/**
+ * Account B: the transfer recipient. It starts at 200 with one history record, not at 0, so that
+ * "unchanged" and "increased by the transfer" can be told apart from an empty account.
+ */
+const accountB: AccountPrecondition = {
   accountId: '2222222222',
   password: '1234',
   firstName: 'Jane',
@@ -31,35 +41,33 @@ const recipient: AccountPrecondition = {
   deposits: [200],
 };
 
-export const registrationState: AccountState = {
-  accounts: { sender },
-  absentAccountIds: ['3333333333', '0333333333', '9999999999'],
+/** Scenarios 1-4: A exists with balance 0 and no history. */
+export const senderOnly: AccountState = {
+  accounts: { sender: accountA },
+  absentAccountIds: ['3333333333', '9999999999'],
 };
 
-export const loginState: AccountState = {
-  accounts: { sender },
+/** Scenario 5: A as above, plus recipient B with balance 200. */
+export const senderAndRecipient: AccountState = {
+  accounts: { sender: accountA, recipient: accountB },
   absentAccountIds: ['9999999999'],
 };
 
-export const zeroState: AccountState = {
-  accounts: { sender, recipient },
-  absentAccountIds: ['3333333333', '0333333333', '9999999999'],
+/** Scenarios 6-7: A with balance 1000 from one deposit. */
+export const fundedSender: AccountState = {
+  accounts: { sender: { ...accountA, balance: 1000, deposits: [1000] } },
+  absentAccountIds: [],
 };
 
-export const fundedState: AccountState = {
-  accounts: { sender: { ...sender, balance: 1000, deposits: [1000] } },
-  absentAccountIds: ['3333333333', '0333333333', '9999999999'],
-};
-
-export function registrationJourneyState(
+/** Scenario 8: recipient B exists; the new customer's account must not exist yet. */
+export function newCustomerAndRecipient(
   newSender: Pick<AccountPrecondition, 'accountId' | 'password' | 'firstName' | 'lastName'>,
 ): AccountState {
   return {
     accounts: {
-      baseline: sender,
-      recipient,
+      recipient: accountB,
       sender: { ...newSender, balance: 0, deposits: [], exists: false },
     },
-    absentAccountIds: zeroState.absentAccountIds,
+    absentAccountIds: [newSender.accountId],
   };
 }

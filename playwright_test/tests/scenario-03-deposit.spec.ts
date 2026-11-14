@@ -4,7 +4,7 @@ import { cases } from '../data/scenarios/scenario-03-deposit';
 import { test } from '../support/fixtures';
 import { fillDepositForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
-import { submitExpectingRejection } from '../support/rejections';
+import { expectRejection, submitForm } from '../support/rejections';
 import { expectAccountPage, expectAccountUnchanged, login } from '../support/ui';
 
 for (const testCase of cases) {
@@ -20,16 +20,15 @@ for (const testCase of cases) {
       await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
     });
 
-    const amount = await fillDepositForm(page, { amount: testCase.inputs['Deposit Amount'] });
     const historyBefore = await page.locator('.history-list').innerText();
 
-    await test.step('Input and expected output: deposit is rejected with the specified message', () =>
-      submitExpectingRejection(page, {
-        field: amount,
-        confirm: 'dc',
-        error: 'deposite-error-mes',
-        message: testCase.message,
-      }),
+    const submission = await test.step('Input: submit the deposit form', async () => {
+      const amount = await fillDepositForm(page, { amount: testCase.inputs['Deposit Amount'] });
+      return submitForm(page, { field: amount, confirm: 'dc' });
+    });
+
+    await test.step('Expected output: deposit is rejected with the specified message', () =>
+      expectRejection(page, submission, { error: 'deposite-error-mes', message: testCase.message }),
     );
 
     await test.step('Post-condition: balance and history unchanged', () =>

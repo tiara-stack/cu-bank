@@ -1,10 +1,10 @@
-import { fundedState } from '../account-state';
+import { fundedSender } from '../account-state';
 import type { TestCase } from '../test-case';
 
 export const cases: ReadonlyArray<TestCase> = [
   {
     "id": "S7-TC01",
-    "accountState": fundedState,
+    "accountState": fundedSender,
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
@@ -33,8 +33,8 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@demo", "@bill-payment-success"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Payment succeeds. A balance = 700. Exactly one new bill-payment record: target = water, amount = 300, resulting balance = 700. The original setup deposit remains. Refresh and confirm the same balances and transaction records. Check action, target, amount, resulting balance, and a plausible execution timestamp." },
-        { "type": "precondition", "description": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit." },
-        { "type": "workbook note", "description": "Reset FUNDED before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
+        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: A at 1000, more than the amount paid." },
+        { "type": "workbook note", "description": "Reset and set A up at 1000 again before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
       ]
     },
     "title": "Pay Water Charge successfully",
@@ -46,7 +46,7 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     "id": "S7-TC02",
-    "accountState": fundedState,
+    "accountState": fundedSender,
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
@@ -75,8 +75,8 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-success"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Payment succeeds. A balance = 500. Exactly one new bill-payment record: target = electric, amount = 500, resulting balance = 500. The original setup deposit remains. Refresh and confirm the same balances and transaction records. Check action, target, amount, resulting balance, and a plausible execution timestamp." },
-        { "type": "precondition", "description": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit." },
-        { "type": "workbook note", "description": "Reset FUNDED before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
+        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: A at 1000, more than the amount paid." },
+        { "type": "workbook note", "description": "Reset and set A up at 1000 again before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
       ]
     },
     "title": "Pay Electric Charge successfully",
@@ -88,7 +88,7 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     "id": "S7-TC03",
-    "accountState": fundedState,
+    "accountState": fundedSender,
     "accountOutcome": {
       "kind": "updated",
       "accounts": {
@@ -117,8 +117,8 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-success"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Payment succeeds. A balance = 800. Exactly one new bill-payment record: target = phone, amount = 200, resulting balance = 800. The original setup deposit remains. Refresh and confirm the same balances and transaction records. Check action, target, amount, resulting balance, and a plausible execution timestamp." },
-        { "type": "precondition", "description": "Apply fixture FUNDED independently for this case. Start signed out. A balance = 1000; History has 1 setup deposit." },
-        { "type": "workbook note", "description": "Reset FUNDED before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
+        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: A at 1000, more than the amount paid." },
+        { "type": "workbook note", "description": "Reset and set A up at 1000 again before each category; do not run the three cases cumulatively. Target strings are the labels stored by the supplied source code." }
       ]
     },
     "title": "Pay Phone Charge successfully",

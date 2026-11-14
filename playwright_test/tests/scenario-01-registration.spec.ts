@@ -1,9 +1,10 @@
 // Scenario 1: registration is rejected.
 import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-01-registration';
-import { captureActualOutput } from '../support/evidence';
+import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
 import { fillRegistrationForm } from '../support/forms';
+import { countAccounts } from '../support/database';
 import { prepareAccounts } from '../support/preconditions';
 import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../support/ui';
 
@@ -18,6 +19,7 @@ for (const testCase of cases) {
       await expectSignedOut(page);
     });
     const dialogs = recordDialogs(page);
+    const accountsBefore = await countAccounts();
 
     await test.step('Input: submit the registration form', async () => {
       await fillRegistrationForm(page, {
@@ -31,8 +33,8 @@ for (const testCase of cases) {
 
     await test.step('Expected output: error message, still on Register, no success alert', async () => {
       const error = page.getByTestId('register-error-mes');
-      await captureActualOutput(page);
-      await expect(error).toBeVisible();
+      // Wait for the message before the screenshot, so the evidence shows it.
+      await withActualOutput(page, () => expect(error).toBeVisible(), error);
       await expect.soft(error).toHaveText(testCase.message!);
       await expect(page).toHaveURL(/\/register$/);
       await expectSignedOut(page);
@@ -46,6 +48,10 @@ for (const testCase of cases) {
       await login(senderPage, sender.accountId, sender.password);
       await expectAccountPage(senderPage).toShow(expected.sender);
       await expectAccountPage(senderPage).toHaveName(expected.sender.name);
+    });
+
+    await test.step('Post-condition: no new account was created', async () => {
+      expect(await countAccounts()).toBe(accountsBefore);
     });
   });
 }

@@ -16,10 +16,11 @@ for (const testCase of cases) {
       prepareAccounts(openSession, testCase),
     );
 
-    await test.step('Input and expected output: register succeeds with alert "success", then the Login page', async () => {
-      const message = await register(page, sender);
-      await test.info().attach('registration-alert', { body: message, contentType: 'text/plain' });
-      expect.soft(message, 'Workbook registration success wording').toBe('success');
+    const alertMessage = await test.step('Input: submit the registration form', () => register(page, sender));
+
+    await test.step('Expected output: alert "success", then the Login page', async () => {
+      await test.info().attach('registration-alert', { body: alertMessage, contentType: 'text/plain' });
+      expect.soft(alertMessage, 'Workbook registration success wording').toBe('success');
       await expect(page).toHaveURL(/\/$/);
       await expectSignedOut(page);
     });
@@ -41,12 +42,15 @@ for (const testCase of cases) {
       await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
     });
 
-    await test.step('Input and expected output: transfer succeeds', async () => {
+    await test.step('Input: submit the transfer form', async () => {
       await fillTransferForm(page, {
         recipientAccountId: recipient.accountId,
         amount: testCase.inputs.Amount,
       });
       await page.getByTestId('tc').click();
+    });
+
+    await test.step('Expected output: transfer succeeds, sender balance reduced', async () => {
       await withActualOutput(page, () => expectAccountPage(page).toShow(expected.sender));
     });
 

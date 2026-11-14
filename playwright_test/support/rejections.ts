@@ -1,9 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
-import { captureActualOutput } from './evidence';
+import { captureActualOutput, withActualOutput } from './evidence';
 import { expect, test } from './fixtures';
 
 /** Reads the browser's own (HTML5) validation state of a field and attaches it to the report. */
-export async function recordNativeValidation(input: Locator) {
+async function recordNativeValidation(input: Locator) {
   const validation = await input.evaluate((element) => {
     const field = element as HTMLInputElement;
     return {
@@ -22,29 +22,37 @@ export async function recordNativeValidation(input: Locator) {
   return validation;
 }
 
+/** What the browser thought of the field at the moment Confirm was clicked. */
+export type Submission = { field: Locator; validation: Awaited<ReturnType<typeof recordNativeValidation>> };
+
+/** Input: records the browser's validation state of the field, then clicks Confirm. */
+export async function submitForm(page: Page, form: { field: Locator; confirm: string }): Promise<Submission> {
+  const validation = await recordNativeValidation(form.field);
+  await page.getByTestId(form.confirm).click();
+  return { field: form.field, validation };
+}
+
 /**
- * Clicks Confirm on a form that must be rejected and checks the specified error message.
+ * Expected output: the submitted form shows the specified error message.
  *
  * The message check is soft: a wording mismatch is reported, and the test still goes on to
  * verify that the rejected action changed nothing. When the browser blocks the submission
  * itself, the application message never appears; that is recorded and reported as a mismatch.
  */
-export async function submitExpectingRejection(
+export async function expectRejection(
   page: Page,
-  form: { field: Locator; confirm: string; error: string; message: string | null },
+  { field, validation }: Submission,
+  expected: { error: string; message: string | null },
 ) {
-  if (form.message === null) throw new Error('This case declares no expected rejection message.');
-  const validation = await recordNativeValidation(form.field);
-  await page.getByTestId(form.confirm).click();
-  const error = page.getByTestId(form.error);
+  if (expected.message === null) throw new Error('This case declares no expected rejection message.');
+  const error = page.getByTestId(expected.error);
 
   if (validation.valid) {
-    await expect.soft(error).toHaveText(form.message);
-    await captureActualOutput(page);
+    await expect.soft(error).toHaveText(expected.message);
+    await captureActualOutput(page, error);
     return;
   }
-  await expect(form.field).toBeFocused();
-  await captureActualOutput(page);
+  await withActualOutput(page, () => expect(field).toBeFocused(), field);
   test.info().annotations.push({
     type: 'native validation',
     description: `Browser blocked submission. ${validation.validationMessage}`,
@@ -54,5 +62,5 @@ export async function submitExpectingRejection(
       (await error.allTextContents()).join(''),
       'Workbook application message was not observed because native validation blocked submission',
     )
-    .toBe(form.message);
+    .toBe(expected.message);
 }
