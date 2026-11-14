@@ -15,7 +15,7 @@ for (const testCase of cases) {
     await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
 
     await test.step('Input: login (must succeed)', async () => {
-      await login(page, sender.accountId, sender.password);
+      await login(page, sender.account.id, sender.account.password);
       await expectAccountPage(page).toHaveBalance(sender.balance);
       await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
     });
@@ -48,7 +48,7 @@ for (const testCase of cases) {
 
     await test.step('Post-condition: recipient received nothing', async () => {
       const recipientPage = await openSession();
-      await login(recipientPage, recipient.accountId, recipient.password);
+      await login(recipientPage, recipient.account.id, recipient.account.password);
       await expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
       await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
       await recipientPage.reload();

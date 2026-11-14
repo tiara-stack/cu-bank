@@ -11,13 +11,18 @@ export async function captureActualOutput(page: Page, highlight?: Locator) {
     body: await page.screenshot(),
     contentType: 'image/png',
   });
-  const box = highlight ? await highlight.boundingBox() : null;
-  const viewport = page.viewportSize();
-  if (box && viewport) {
-    await test.info().attach('actual-output-highlight', {
-      body: JSON.stringify({ ...box, viewportWidth: viewport.width, viewportHeight: viewport.height }),
-      contentType: 'application/json',
-    });
+  if (!highlight) return;
+  try {
+    const box = await highlight.boundingBox({ timeout: 500 });
+    const viewport = page.viewportSize();
+    if (box && viewport) {
+      await test.info().attach('actual-output-highlight', {
+        body: JSON.stringify({ ...box, viewportWidth: viewport.width, viewportHeight: viewport.height }),
+        contentType: 'application/json',
+      });
+    }
+  } catch {
+    // Framing is optional. Keep the screenshot and allow post-condition checks to continue.
   }
 }
 

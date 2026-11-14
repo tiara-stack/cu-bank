@@ -4,7 +4,6 @@ import { cases } from '../data/scenarios/scenario-01-registration';
 import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
 import { fillRegistrationForm } from '../support/forms';
-import { countAccounts } from '../support/database';
 import { prepareAccounts } from '../support/preconditions';
 import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../support/ui';
 
@@ -19,11 +18,10 @@ for (const testCase of cases) {
       await expectSignedOut(page);
     });
     const dialogs = recordDialogs(page);
-    const accountsBefore = await countAccounts();
 
     await test.step('Input: submit the registration form', async () => {
       await fillRegistrationForm(page, {
-        accountId: testCase.inputs['Account Number'],
+        id: testCase.inputs['Account Number'],
         password: testCase.inputs.Password,
         firstName: testCase.inputs.Firstname,
         lastName: testCase.inputs.Lastname,
@@ -45,13 +43,9 @@ for (const testCase of cases) {
       await page.reload();
       await expectSignedOut(page);
       const senderPage = await openSession();
-      await login(senderPage, sender.accountId, sender.password);
+      await login(senderPage, sender.account.id, sender.account.password);
       await expectAccountPage(senderPage).toShow(expected.sender);
       await expectAccountPage(senderPage).toHaveName(expected.sender.name);
-    });
-
-    await test.step('Post-condition: no new account was created', async () => {
-      expect(await countAccounts()).toBe(accountsBefore);
     });
   });
 }

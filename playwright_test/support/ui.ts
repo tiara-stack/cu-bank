@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures';
+import type { Account } from '../data/account';
 import type { AccountExpectation, TransactionExpectation } from '../data/account-outcome';
 import { fillDepositForm, fillLoginForm, fillRegistrationForm, fillWithdrawalForm } from './forms';
 
@@ -22,7 +23,7 @@ export function recordDialogs(page: Page) {
 /** Registers successfully and returns the text of the confirmation alert. */
 export async function register(
   page: Page,
-  account: { accountId: string; password: string; firstName: string; lastName: string },
+  account: Account,
 ) {
   await page.goto('/register');
   await fillRegistrationForm(page, account);
@@ -39,9 +40,9 @@ export async function register(
 }
 
 /** Logs in and checks the specified outputs: Account page, no LOG IN / Register, LOG OUT shown. */
-export async function login(page: Page, accountId: string, password: string) {
+export async function login(page: Page, id: string, password: string) {
   await page.goto('/');
-  await fillLoginForm(page, { accountId, password });
+  await fillLoginForm(page, { id, password });
   await page.getByTestId('lc').click();
   await expect(page).toHaveURL(/\/account\/?$/);
   await expect(page.getByRole('link', { name: 'Account', exact: true })).toBeVisible();

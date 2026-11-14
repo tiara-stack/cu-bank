@@ -21,7 +21,7 @@ for (const testCase of cases) {
 
     await test.step('Input: submit the login form', async () => {
       await fillLoginForm(page, {
-        accountId: testCase.inputs['Account Number'],
+        id: testCase.inputs['Account Number'],
         password: testCase.inputs.Password,
       });
       await page.getByTestId('lc').click();
@@ -41,7 +41,7 @@ for (const testCase of cases) {
       await page.reload();
       await expectSignedOut(page);
       const senderPage = await openSession();
-      await login(senderPage, sender.accountId, sender.password);
+      await login(senderPage, sender.account.id, sender.account.password);
       await expectAccountPage(senderPage).toShow(expected.sender);
       await expectAccountPage(senderPage).toHaveName(expected.sender.name);
     });

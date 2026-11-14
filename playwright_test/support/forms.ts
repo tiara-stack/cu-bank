@@ -1,8 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
-import type { AccountPrecondition } from '../data/account-state';
+import type { Account } from '../data/account';
 
-type RegistrationFields = Pick<AccountPrecondition, 'accountId' | 'password' | 'firstName' | 'lastName'>;
-type LoginFields = Pick<AccountPrecondition, 'accountId' | 'password'>;
+type LoginFields = Pick<Account, 'id' | 'password'>;
 type AmountFields = { amount: string };
 type TransferFields = AmountFields & { recipientAccountId: string };
 
@@ -15,15 +14,15 @@ async function enterAmount(input: Locator, amount: string) {
   return input;
 }
 
-export async function fillRegistrationForm(page: Page, fields: RegistrationFields) {
-  await page.getByTestId('r1').fill(fields.accountId);
+export async function fillRegistrationForm(page: Page, fields: Account) {
+  await page.getByTestId('r1').fill(fields.id);
   await page.getByTestId('r2').fill(fields.password);
   await page.getByTestId('r3').fill(fields.firstName);
   await page.getByTestId('r4').fill(fields.lastName);
 }
 
 export async function fillLoginForm(page: Page, fields: LoginFields) {
-  await page.getByTestId('l1').fill(fields.accountId);
+  await page.getByTestId('l1').fill(fields.id);
   await page.getByTestId('l2').fill(fields.password);
 }
 

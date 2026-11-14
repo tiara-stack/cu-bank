@@ -16,7 +16,7 @@ for (const testCase of cases) {
       prepareAccounts(openSession, testCase),
     );
 
-    const alertMessage = await test.step('Input: submit the registration form', () => register(page, sender));
+    const alertMessage = await test.step('Input: submit the registration form', () => register(page, sender.account));
 
     await test.step('Expected output: alert "success", then the Login page', async () => {
       await test.info().attach('registration-alert', { body: alertMessage, contentType: 'text/plain' });
@@ -26,7 +26,7 @@ for (const testCase of cases) {
     });
 
     await test.step('Input: login (must succeed, empty account)', async () => {
-      await login(page, sender.accountId, sender.password);
+      await login(page, sender.account.id, sender.account.password);
       await expectAccountPage(page).toHaveBalance(0);
       await expectAccountPage(page).toHaveHistoryCount(0);
       await expectAccountPage(page).toHaveName(expected.sender.name);
@@ -37,14 +37,14 @@ for (const testCase of cases) {
 
     const recipientPage = await openSession();
     await test.step('Pre-condition check: recipient has the seeded balance', async () => {
-      await login(recipientPage, recipient.accountId, recipient.password);
+      await login(recipientPage, recipient.account.id, recipient.account.password);
       await expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
       await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
     });
 
     await test.step('Input: submit the transfer form', async () => {
       await fillTransferForm(page, {
-        recipientAccountId: recipient.accountId,
+        recipientAccountId: recipient.account.id,
         amount: testCase.inputs.Amount,
       });
       await page.getByTestId('tc').click();

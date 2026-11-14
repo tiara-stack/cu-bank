@@ -1,3 +1,4 @@
+import { accountA } from '../account';
 import { unchangedAccountOutcome } from '../account-outcome';
 import { fundedSender } from '../account-state';
 import type { TestCase } from '../test-case';
@@ -12,7 +13,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@demo", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: Your balance is not enough to complete the bill payment. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: A at exactly 1000." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record. This case needs: A at exactly 1000.` },
         { "type": "workbook note", "description": "All other inputs and successful prefix steps remain valid. A rejected action must not change balances or append a transaction. Verify after refresh." }
       ]
     },
@@ -32,7 +33,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: Your balance is not enough to complete the bill payment. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: A at exactly 1000." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record. This case needs: A at exactly 1000.` },
         { "type": "workbook note", "description": "Specification pp. 3-4 says amount must be LESS THAN the balance. This case expects rejection at equality. The supplied code permits equality. Confirm the intended rule with the instructor before final defect classification." }
       ]
     },
@@ -52,7 +53,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: The amount must be greater than 0. Please enter a positive number. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record.` },
         { "type": "workbook note", "description": "All other inputs and successful prefix steps remain valid. A rejected action must not change balances or append a transaction. Verify after refresh." }
       ]
     },
@@ -72,7 +73,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: The amount must be greater than 0. Please enter a positive number. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record.` },
         { "type": "workbook note", "description": "All other inputs and successful prefix steps remain valid. A rejected action must not change balances or append a transaction. Verify after refresh." }
       ]
     },
@@ -92,7 +93,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: Invalid balance amount. Please enter a valid number. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record.` },
         { "type": "workbook note", "description": "UI amount inputs use type=number and the default integer step. Try ordinary typing/paste. If the browser blocks submission, record its actual validation and that the specified app message was not observed. Do not remove HTML constraints or claim backend validation was exercised." }
       ]
     },
@@ -112,7 +113,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-selected"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. Expected message: The balance amount must be a whole number with no decimals. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record.` },
         { "type": "workbook note", "description": "UI amount inputs use type=number and the default integer step. Try ordinary typing/paste. If the browser blocks submission, record its actual validation and that the specified app message was not observed. Do not remove HTML constraints or claim backend validation was exercised." }
       ]
     },
@@ -132,7 +133,7 @@ export const cases: ReadonlyArray<TestCase> = [
       "tag": ["@variant", "@bill-payment-rejection", "@bill-category-required"],
       "annotation": [
         { "type": "expected", "description": "Login succeeds: Account page opens; Register and LOG IN links are hidden; LOG OUT is visible. Bill payment is rejected. The form requires one category. The specification gives no exact error text (N/A); capture the actual required-field validation. A remains 1000 with only its 1 setup deposit." },
-        { "type": "precondition", "description": "Reset: no accounts exist; new browser, signed out. Setup: A (1111111111 / 1234) registered, balance 1000, 1 history record. This case needs: no bill category selected after login." },
+        { "type": "precondition", "description": `Reset: no accounts exist; new browser, signed out. Setup: A (${accountA.id} / 1234) registered, balance 1000, 1 history record. This case needs: no bill category selected after login.` },
         { "type": "workbook note", "description": "Use a fresh page; a previously selected radio must not carry over. No exact message is asserted because the specification says N/A." }
       ]
     },

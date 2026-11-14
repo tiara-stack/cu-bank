@@ -22,7 +22,7 @@ for (const testCase of cases) {
     await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
 
     await test.step('Input: login (must succeed)', async () => {
-      await login(page, sender.accountId, sender.password);
+      await login(page, sender.account.id, sender.account.password);
       await expectAccountPage(page).toHaveBalance(sender.balance);
       await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
     });

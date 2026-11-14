@@ -35,18 +35,18 @@ export async function prepareAccounts(
   }
 }
 
-async function seedAccount(page: Page, account: AccountPrecondition) {
+async function seedAccount(page: Page, { account, balance, deposits }: AccountPrecondition) {
   await register(page, account);
-  await login(page, account.accountId, account.password);
+  await login(page, account.id, account.password);
   await expectAccountPage(page).toHaveBalance(0);
   await expectAccountPage(page).toHaveHistoryCount(0);
 
-  const history = depositHistory(account.deposits);
+  const history = depositHistory(deposits);
   for (const [index, deposit] of history.entries()) {
     await transact(page, 'deposit', deposit.amount, deposit.balance, index + 1);
   }
 
-  await expectAccountPage(page).toHaveBalance(account.balance);
+  await expectAccountPage(page).toHaveBalance(balance);
   await expectAccountPage(page).toHaveHistoryCount(history.length);
   await expectAccountPage(page).toHaveHistory(history);
   await expectAccountPage(page).toHaveName(`${account.firstName} ${account.lastName}`);
