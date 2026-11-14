@@ -1,43 +1,48 @@
-import { Effect } from 'effect';
-import { Playwright } from 'effect-playwright';
+// Scenario 7: login succeeds, then a bill payment succeeds.
+import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-07-bill-payment-success';
-import { expect, testFor } from '../support/fixtures';
+import { withActualOutput } from '../support/evidence';
+import { expect, test } from '../support/fixtures';
 import { fillBillPaymentForm } from '../support/forms';
+import { prepareAccounts } from '../support/preconditions';
 import { expectAccountPage, login } from '../support/ui';
-const categories: Record<
-  string,
-  {
-    cid: string;
-  }
-> = {
-  'Water Charge': { cid: 'b1' },
-  'Electric Charge': { cid: 'b2' },
-  'Phone Charge': { cid: 'b3' },
-};
-for (const example of cases) {
-  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
-    Effect.gen(function* () {
-      const page = yield* Playwright.Page;
-      const sender = accountState.accounts.sender;
-      yield* login(page, sender.accountId, sender.password);
-      yield* expectAccountPage(page).toHaveBalance(sender.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
-      const expected = expectedAccounts.sender;
-      const category = categories[example.inputs['Target Payment']];
-      yield* page.getByTestId(category.cid).check();
-      for (const choice of Object.values(categories)) {
-        yield* expect(page.getByTestId(choice.cid)).toBeChecked({ checked: choice.cid === category.cid });
-      }
-      yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
-      yield* page.getByTestId('bc').click();
 
-      yield* expectAccountPage(page).toHaveBalance(expected.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(expected.transactions.length);
-      yield* expectAccountPage(page).toHaveHistory(expected.transactions);
-      yield* page.reload();
-      yield* expectAccountPage(page).toHaveBalance(expected.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(expected.transactions.length);
-      yield* expectAccountPage(page).toHaveHistory(expected.transactions);
-    }),
-  );
+const categoryRadio: Record<string, string> = {
+  'Water Charge': 'b1',
+  'Electric Charge': 'b2',
+  'Phone Charge': 'b3',
+};
+
+for (const testCase of cases) {
+  test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
+    const { sender } = testCase.accountState.accounts;
+    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
+    const selected = categoryRadio[testCase.inputs['Target Payment']];
+
+    await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
+
+    await test.step('Input: login (must succeed)', async () => {
+      await login(page, sender.accountId, sender.password);
+      await expectAccountPage(page).toHaveBalance(sender.balance);
+      await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
+    });
+
+    await test.step('Input: choose exactly one category and pay', async () => {
+      await page.getByTestId(selected).check();
+      for (const radio of Object.values(categoryRadio)) {
+        await expect(page.getByTestId(radio)).toBeChecked({ checked: radio === selected });
+      }
+      await fillBillPaymentForm(page, { amount: testCase.inputs.Amount });
+      await page.getByTestId('bc').click();
+    });
+
+    await test.step('Expected output: balance reduced, one new history record', async () => {
+      await withActualOutput(page, () => expectAccountPage(page).toShow(expected.sender));
+    });
+
+    await test.step('Post-condition: the result survives a reload', async () => {
+      await page.reload();
+      await expectAccountPage(page).toShow(expected.sender);
+    });
+  });
 }
