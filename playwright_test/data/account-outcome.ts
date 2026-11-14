@@ -36,19 +36,20 @@ export function depositHistory(deposits: ReadonlyArray<number>): TransactionExpe
 
 export function expectedAccountsFor(state: AccountState, outcome: AccountOutcome): ExpectedAccounts {
   const expected: Record<string, ExpectedAccount> = {};
-  for (const [role, account] of Object.entries(state.accounts)) {
-    if (account.exists === false) continue;
+  for (const [role, precondition] of Object.entries(state.accounts)) {
+    if (precondition.exists === false) continue;
+    const { account, balance, deposits } = precondition;
     expected[role] = {
-      accountId: account.accountId,
+      accountId: account.id,
       name: `${account.firstName} ${account.lastName}`,
-      balance: account.balance,
-      transactions: depositHistory(account.deposits),
+      balance,
+      transactions: depositHistory(deposits),
     };
   }
   for (const [role, result] of Object.entries(outcome.accounts)) {
-    const account = state.accounts[role];
-    if (!account) throw new Error(`Account outcome refers to undefined role "${role}".`);
-    expected[role] = { accountId: account.accountId, ...result };
+    const precondition = state.accounts[role];
+    if (!precondition) throw new Error(`Account outcome refers to undefined role "${role}".`);
+    expected[role] = { accountId: precondition.account.id, ...result };
   }
   return expected;
 }

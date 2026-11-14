@@ -12,6 +12,12 @@ demo cases, one per scenario, carry the `@demo` tag.
 | [tests](tests) | One spec per scenario. It loops over the scenario's cases and runs each as `test.step`s in the order of the test-case template: pre-condition, inputs, expected output, post-condition. |
 | [support](support) | Helpers the specs share (see below). |
 
+[data/account.ts](data/account.ts) defines named accounts with an `id`, password and registration names.
+`AccountPrecondition` in [data/account-state.ts](data/account-state.ts) pairs an `account` with its starting
+balance, setup deposits and existence flag. States refer to named IDs such as `newCustomer.id` and
+`unregisteredAccount.id`. Scenario 8 selects `newCustomerAndRecipient` or `boundaryCustomerAndRecipient`
+directly, using the account definitions for its registration inputs.
+
 | Scenario | Case data | Spec |
 | --- | --- | --- |
 | 1. Registration rejected | [Cases](data/scenarios/scenario-01-registration.ts) | [Spec](tests/scenario-01-registration.spec.ts) |
@@ -29,11 +35,11 @@ demo cases, one per scenario, carry the `@demo` tag.
 | --- | --- |
 | [fixtures.ts](support/fixtures.ts) | `test` with one extra fixture, `openSession()`: a page in a fresh browser context, so a test can act as several customers. |
 | [preconditions.ts](support/preconditions.ts) | `prepareAccounts()`: empties the database, then registers, logs in and funds each account the case needs, through the UI. |
-| [database.ts](support/database.ts) | `clearAccounts()`: the only direct database access, used because the application cannot delete accounts. |
+| [database.ts](support/database.ts) | The only direct database access. `clearAccounts()` resets the system before each case because the application cannot delete accounts. |
 | [forms.ts](support/forms.ts) | Field entry for each form, using the application's `cid` attributes. |
 | [ui.ts](support/ui.ts) | `register`, `login`, `transact` for steps that must succeed; `expectAccountPage(page)` and `expectAccountUnchanged` for state checks. |
 | [evidence.ts](support/evidence.ts) | `captureActualOutput()`: attaches a screenshot named `actual-output` to the case; the report uses it as the Actual Output. |
-| [rejections.ts](support/rejections.ts) | `submitExpectingRejection()`: clicks Confirm and checks the specified error message; records the browser's own validation when it blocks the form. |
+| [rejections.ts](support/rejections.ts) | `submitForm()`: the input, records the browser's own validation of the field and clicks Confirm. `expectRejection()`: the expected output, checks the specified error message, or reports that the browser blocked the form. |
 
 ## Setup
 

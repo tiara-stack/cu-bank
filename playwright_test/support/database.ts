@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 
-/** Empties the `users` collection of the temporary database started by global setup. */
+/** Reset: deletes every account, because the application itself cannot delete one. */
 export async function clearAccounts() {
   const uri = process.env.PLAYWRIGHT_MONGO_URI;
   if (!uri) throw new Error('The isolated database was not started by global setup.');

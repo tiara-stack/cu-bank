@@ -1,7 +1,7 @@
 // Scenario 2: login is rejected.
 import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-02-login';
-import { captureActualOutput } from '../support/evidence';
+import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
 import { fillLoginForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
@@ -21,7 +21,7 @@ for (const testCase of cases) {
 
     await test.step('Input: submit the login form', async () => {
       await fillLoginForm(page, {
-        accountId: testCase.inputs['Account Number'],
+        id: testCase.inputs['Account Number'],
         password: testCase.inputs.Password,
       });
       await page.getByTestId('lc').click();
@@ -29,8 +29,8 @@ for (const testCase of cases) {
 
     await test.step('Expected output: error message, still on Login', async () => {
       const error = page.getByTestId('login-error-mes');
-      await captureActualOutput(page);
-      await expect(error).toBeVisible();
+      // Wait for the message before the screenshot, so the evidence shows it.
+      await withActualOutput(page, () => expect(error).toBeVisible(), error);
       await expect.soft(error).toHaveText(testCase.message!);
       await expect(page).toHaveURL(/\/$/);
       await expectSignedOut(page);
@@ -41,7 +41,7 @@ for (const testCase of cases) {
       await page.reload();
       await expectSignedOut(page);
       const senderPage = await openSession();
-      await login(senderPage, sender.accountId, sender.password);
+      await login(senderPage, sender.account.id, sender.account.password);
       await expectAccountPage(senderPage).toShow(expected.sender);
       await expectAccountPage(senderPage).toHaveName(expected.sender.name);
     });

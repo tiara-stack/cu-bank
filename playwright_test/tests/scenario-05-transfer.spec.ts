@@ -4,7 +4,7 @@ import { cases } from '../data/scenarios/scenario-05-transfer';
 import { test } from '../support/fixtures';
 import { fillTransferForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
-import { submitExpectingRejection } from '../support/rejections';
+import { expectRejection, submitForm } from '../support/rejections';
 import { expectAccountPage, expectAccountUnchanged, login, transact } from '../support/ui';
 
 for (const testCase of cases) {
@@ -15,7 +15,7 @@ for (const testCase of cases) {
     await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
 
     await test.step('Input: login (must succeed)', async () => {
-      await login(page, sender.accountId, sender.password);
+      await login(page, sender.account.id, sender.account.password);
       await expectAccountPage(page).toHaveBalance(sender.balance);
       await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
     });
@@ -28,19 +28,18 @@ for (const testCase of cases) {
       transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2),
     );
 
-    const amount = await fillTransferForm(page, {
-      recipientAccountId: testCase.inputs['Transfer Target'],
-      amount: testCase.inputs['Transfer Amount'],
-    });
     const historyBefore = await page.locator('.history-list').innerText();
 
-    await test.step('Input and expected output: transfer is rejected with the specified message', () =>
-      submitExpectingRejection(page, {
-        field: amount,
-        confirm: 'tc',
-        error: 'transfer-error-mes',
-        message: testCase.message,
-      }),
+    const submission = await test.step('Input: submit the transfer form', async () => {
+      const amount = await fillTransferForm(page, {
+        recipientAccountId: testCase.inputs['Transfer Target'],
+        amount: testCase.inputs['Transfer Amount'],
+      });
+      return submitForm(page, { field: amount, confirm: 'tc' });
+    });
+
+    await test.step('Expected output: transfer is rejected with the specified message', () =>
+      expectRejection(page, submission, { error: 'transfer-error-mes', message: testCase.message }),
     );
 
     await test.step('Post-condition: sender unchanged', () =>
@@ -49,7 +48,7 @@ for (const testCase of cases) {
 
     await test.step('Post-condition: recipient received nothing', async () => {
       const recipientPage = await openSession();
-      await login(recipientPage, recipient.accountId, recipient.password);
+      await login(recipientPage, recipient.account.id, recipient.account.password);
       await expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
       await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
       await recipientPage.reload();
