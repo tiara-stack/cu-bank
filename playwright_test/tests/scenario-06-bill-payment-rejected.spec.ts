@@ -1,62 +1,56 @@
-import { Effect } from 'effect';
-import { Playwright } from 'effect-playwright';
+// Scenario 6: login succeeds, then a bill payment is rejected.
+import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-06-bill-payment-rejected';
-import { expect, testFor } from '../support/fixtures';
+import { captureActualOutput } from '../support/evidence';
+import { expect, test } from '../support/fixtures';
 import { fillBillPaymentForm } from '../support/forms';
-import { expectRejection } from '../support/rejections';
-import { expectAccountPage, login, recordNativeValidation } from '../support/ui';
-for (const example of cases.filter((item) => item.details.tag.includes('@bill-category-selected'))) {
-  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
-    Effect.gen(function* () {
-      const page = yield* Playwright.Page;
-      const sender = accountState.accounts.sender;
-      yield* login(page, sender.accountId, sender.password);
-      yield* expectAccountPage(page).toHaveBalance(sender.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
-      yield* page.getByTestId('b1').check();
-      const amount = yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
-      const historyBefore = yield* page.locator('.history-list').innerText();
-      const validation = yield* recordNativeValidation(amount);
-      yield* page.getByTestId('bc').click();
-      if (!validation.valid) yield* expect(amount).toBeFocused();
-      yield* expectRejection(page.getByTestId('billpayment-error-mes'), {
-        validation,
-      }).toHaveMessage(example.message!);
+import { prepareAccounts } from '../support/preconditions';
+import { recordNativeValidation, submitExpectingRejection } from '../support/rejections';
+import { expectAccountPage, expectAccountUnchanged, login } from '../support/ui';
 
-      yield* page.reload();
-      yield* expect(page.getByText('Loading...', { exact: true })).toHaveCount(0);
-      yield* expectAccountPage(page).toHaveBalance(expectedAccounts.sender.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(expectedAccounts.sender.transactions.length);
-      yield* expectAccountPage(page).toHaveHistory(expectedAccounts.sender.transactions);
-      yield* expect(page.locator('.history-list')).toHaveText(historyBefore, { useInnerText: true });
-      yield* expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible();
-    }),
-  );
-}
-for (const example of cases.filter((item) => item.details.tag.includes('@bill-category-required'))) {
-  testFor(example).effect(`${example.id} ${example.title}`, example.details, ({ expectedAccounts, accountState }) =>
-    Effect.gen(function* () {
-      const page = yield* Playwright.Page;
-      const sender = accountState.accounts.sender;
-      yield* login(page, sender.accountId, sender.password);
-      yield* expectAccountPage(page).toHaveBalance(sender.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
-      yield* fillBillPaymentForm(page, { amount: example.inputs.Amount });
-      const historyBefore = yield* page.locator('.history-list').innerText();
-      const validation = yield* recordNativeValidation(page.getByTestId('b1'));
-      yield* page.getByTestId('bc').click();
-      expect(validation.valid).toBe(false);
-      expect(validation.valueMissing).toBe(true);
-      yield* expect(page.getByTestId('b1')).toBeFocused();
-      expect(validation.validationMessage).not.toBe('');
+for (const testCase of cases) {
+  test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
+    const { sender } = testCase.accountState.accounts;
+    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
+    const categoryIsSelected = testCase.details.tag.includes('@bill-category-selected');
+    const waterCharge = page.getByTestId('b1');
 
-      yield* page.reload();
-      yield* expect(page.getByText('Loading...', { exact: true })).toHaveCount(0);
-      yield* expectAccountPage(page).toHaveBalance(expectedAccounts.sender.balance);
-      yield* expectAccountPage(page).toHaveHistoryCount(expectedAccounts.sender.transactions.length);
-      yield* expectAccountPage(page).toHaveHistory(expectedAccounts.sender.transactions);
-      yield* expect(page.locator('.history-list')).toHaveText(historyBefore, { useInnerText: true });
-      yield* expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible();
-    }),
-  );
+    await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
+
+    await test.step('Input: login (must succeed)', async () => {
+      await login(page, sender.accountId, sender.password);
+      await expectAccountPage(page).toHaveBalance(sender.balance);
+      await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
+    });
+
+    if (categoryIsSelected) await waterCharge.check();
+    const amount = await fillBillPaymentForm(page, { amount: testCase.inputs.Amount });
+    const historyBefore = await page.locator('.history-list').innerText();
+
+    if (categoryIsSelected) {
+      await test.step('Input and expected output: bill payment is rejected with the specified message', () =>
+        submitExpectingRejection(page, {
+          field: amount,
+          confirm: 'bc',
+          error: 'billpayment-error-mes',
+          message: testCase.message,
+        }),
+      );
+    } else {
+      // The specification gives no message for a missing category (N/A): the browser must block it.
+      await test.step('Input and expected output: bill payment without a category is blocked by the browser', async () => {
+        const validation = await recordNativeValidation(waterCharge);
+        await page.getByTestId('bc').click();
+        await captureActualOutput(page);
+        expect(validation.valid).toBe(false);
+        expect(validation.valueMissing).toBe(true);
+        await expect(waterCharge).toBeFocused();
+        expect(validation.validationMessage).not.toBe('');
+      });
+    }
+
+    await test.step('Post-condition: balance and history unchanged', () =>
+      expectAccountUnchanged(page, expected.sender, historyBefore),
+    );
+  });
 }

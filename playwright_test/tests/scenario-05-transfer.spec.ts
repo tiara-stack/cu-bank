@@ -1,52 +1,60 @@
-import { Effect } from 'effect';
-import { Playwright } from 'effect-playwright';
+// Scenario 5: login, deposit and withdrawal succeed, then a transfer is rejected.
+import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-05-transfer';
-import { expect, testFor } from '../support/fixtures';
+import { test } from '../support/fixtures';
 import { fillTransferForm } from '../support/forms';
-import { expectRejection } from '../support/rejections';
-import { expectAccountPage, login, transact, recordNativeValidation } from '../support/ui';
-for (const example of cases) {
-  testFor(example).effect(
-    `${example.id} ${example.title}`,
-    example.details,
-    ({ expectedAccounts, baseURL, accountState }) =>
-      Effect.gen(function* () {
-        const page = yield* Playwright.Page;
-        const sender = accountState.accounts.sender;
-        yield* login(page, sender.accountId, sender.password);
-        yield* expectAccountPage(page).toHaveBalance(sender.balance);
-        yield* expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
-        yield* transact(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1);
-        yield* transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2);
-        const browser = yield* Playwright.Browser;
-        const amount = yield* fillTransferForm(page, {
-          recipientAccountId: example.inputs['Transfer Target'],
-          amount: example.inputs['Transfer Amount'],
-        });
-        const historyBefore = yield* page.locator('.history-list').innerText();
-        const validation = yield* recordNativeValidation(amount);
-        yield* page.getByTestId('tc').click();
-        if (!validation.valid) yield* expect(amount).toBeFocused();
-        yield* expectRejection(page.getByTestId('transfer-error-mes'), {
-          validation,
-        }).toHaveMessage(example.message!);
+import { prepareAccounts } from '../support/preconditions';
+import { submitExpectingRejection } from '../support/rejections';
+import { expectAccountPage, expectAccountUnchanged, login, transact } from '../support/ui';
 
-        yield* page.reload();
-        yield* expect(page.getByText('Loading...', { exact: true })).toHaveCount(0);
-        yield* expectAccountPage(page).toHaveBalance(expectedAccounts.sender.balance);
-        yield* expectAccountPage(page).toHaveHistoryCount(expectedAccounts.sender.transactions.length);
-        yield* expectAccountPage(page).toHaveHistory(expectedAccounts.sender.transactions);
-        yield* expect(page.locator('.history-list')).toHaveText(historyBefore, { useInnerText: true });
-        yield* expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible();
-        const recipientContext = yield* browser.newContext({ baseURL });
-        const recipient = accountState.accounts.recipient;
-        const recipientPage = yield* recipientContext.newPage;
-        yield* login(recipientPage, recipient.accountId, recipient.password);
-        yield* expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
-        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
-        yield* recipientPage.reload();
-        yield* expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
-        yield* expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
+for (const testCase of cases) {
+  test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
+    const { sender, recipient } = testCase.accountState.accounts;
+    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
+
+    await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
+
+    await test.step('Input: login (must succeed)', async () => {
+      await login(page, sender.accountId, sender.password);
+      await expectAccountPage(page).toHaveBalance(sender.balance);
+      await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
+    });
+
+    await test.step('Input: deposit 1000 (must succeed)', () =>
+      transact(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1),
+    );
+
+    await test.step('Input: withdraw 200 (must succeed)', () =>
+      transact(page, 'withdraw', 200, sender.balance + 800, sender.deposits.length + 2),
+    );
+
+    const amount = await fillTransferForm(page, {
+      recipientAccountId: testCase.inputs['Transfer Target'],
+      amount: testCase.inputs['Transfer Amount'],
+    });
+    const historyBefore = await page.locator('.history-list').innerText();
+
+    await test.step('Input and expected output: transfer is rejected with the specified message', () =>
+      submitExpectingRejection(page, {
+        field: amount,
+        confirm: 'tc',
+        error: 'transfer-error-mes',
+        message: testCase.message,
       }),
-  );
+    );
+
+    await test.step('Post-condition: sender unchanged', () =>
+      expectAccountUnchanged(page, expected.sender, historyBefore),
+    );
+
+    await test.step('Post-condition: recipient received nothing', async () => {
+      const recipientPage = await openSession();
+      await login(recipientPage, recipient.accountId, recipient.password);
+      await expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
+      await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
+      await recipientPage.reload();
+      await expectAccountPage(recipientPage).toHaveBalance(recipient.balance);
+      await expectAccountPage(recipientPage).toHaveHistoryCount(recipient.deposits.length);
+    });
+  });
 }

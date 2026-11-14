@@ -22,9 +22,6 @@
   "devDependencies": {
     "@playwright/test": "1.65.0",
     "@types/node": "24.19.2",
-    "effect": "4.1.4",
-    "effect-mongodb": "0.9.0",
-    "effect-playwright": "0.9.0",
     "fallow": "3.42.0",
     "mongodb": "6.22.0",
     "mongodb-memory-server": "11.3.0",
