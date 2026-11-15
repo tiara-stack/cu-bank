@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures';
 import type { Account } from '../data/account';
 import type { AccountExpectation, TransactionExpectation } from '../data/account-outcome';
-import { fillDepositForm, fillLoginForm, fillRegistrationForm, fillWithdrawalForm } from './forms';
+import { fillDepositForm, fillLoginForm, fillRegistrationForm, fillWithdrawalForm, submitForm } from './forms';
 
 export async function expectSignedOut(page: Page) {
   await expect(page.getByRole('link', { name: 'LOG IN', exact: true })).toBeVisible();
@@ -10,11 +10,11 @@ export async function expectSignedOut(page: Page) {
   await expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toHaveCount(0);
 }
 
-/** Collects the text of every native dialog the page opens, dismissing each one. */
+/** Records every native dialog's type and message, dismissing each one. */
 export function recordDialogs(page: Page) {
-  const dialogs: string[] = [];
+  const dialogs: Array<{ type: string; message: string }> = [];
   page.on('dialog', async (dialog) => {
-    dialogs.push(dialog.message());
+    dialogs.push({ type: dialog.type(), message: dialog.message() });
     await dialog.dismiss();
   });
   return dialogs;
@@ -26,10 +26,10 @@ export async function register(
   account: Account,
 ) {
   await page.goto('/register');
-  await fillRegistrationForm(page, account);
+  const form = await fillRegistrationForm(page, account);
   // Start listening before the click: the alert blocks the click until it is accepted.
   const dialogOpened = page.waitForEvent('dialog');
-  const submission = page.getByTestId('rc').click();
+  const submission = submitForm(form);
   const dialog = await dialogOpened;
   const message = dialog.message();
   expect(dialog.type()).toBe('alert');
@@ -42,8 +42,12 @@ export async function register(
 /** Logs in and checks the specified outputs: Account page, no LOG IN / Register, LOG OUT shown. */
 export async function login(page: Page, id: string, password: string) {
   await page.goto('/');
-  await fillLoginForm(page, { id, password });
-  await page.getByTestId('lc').click();
+  const form = await fillLoginForm(page, { id, password });
+  await submitForm(form);
+  await expectLoggedIn(page);
+}
+
+export async function expectLoggedIn(page: Page) {
   await expect(page).toHaveURL(/\/account\/?$/);
   await expect(page.getByRole('link', { name: 'Account', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'LOG OUT', exact: true })).toBeVisible();
@@ -108,12 +112,23 @@ export async function transact(
   historyCount: number,
 ) {
   if (action === 'deposit') {
-    await fillDepositForm(page, { amount: String(amount) });
-    await page.getByTestId('dc').click();
+    const form = await fillDepositForm(page, { amount: String(amount) });
+    await submitForm(form);
   } else {
-    await fillWithdrawalForm(page, { amount: String(amount) });
-    await page.getByTestId('wc').click();
+    const form = await fillWithdrawalForm(page, { amount: String(amount) });
+    await submitForm(form);
   }
+  await expectTransaction(page, action, amount, balance, historyCount);
+}
+
+/** Checks a successful deposit or withdrawal, including the newly appended history record. */
+export async function expectTransaction(
+  page: Page,
+  action: 'deposit' | 'withdraw',
+  amount: number,
+  balance: number,
+  historyCount: number,
+) {
   await expectAccountPage(page).toHaveBalance(balance);
   await expectAccountPage(page).toHaveHistoryCount(historyCount);
   const record = historyRecords(page).last();

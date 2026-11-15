@@ -3,10 +3,10 @@ import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-06-bill-payment-rejected';
 import { captureActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
-import { fillBillPaymentForm } from '../support/forms';
+import { fillLoginForm, fillBillPaymentForm, submitForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
-import { expectRejection, submitForm } from '../support/rejections';
-import { expectAccountPage, expectAccountUnchanged, login } from '../support/ui';
+import { expectRejection } from '../support/rejections';
+import { expectAccountPage, expectLoggedIn, expectSignedOut, expectAccountUnchanged } from '../support/ui';
 
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
@@ -15,22 +15,32 @@ for (const testCase of cases) {
     const categoryIsSelected = testCase.details.tag.includes('@bill-category-selected');
     const waterCharge = page.getByTestId('b1');
 
-    await test.step('Pre-condition: seed accounts', () => prepareAccounts(openSession, testCase));
+    await test.step('Pre-condition: seed accounts, signed out on Login', async () => {
+      await prepareAccounts(openSession, testCase);
+      await page.goto('/');
+      await expectSignedOut(page);
+    });
 
-    await test.step('Input: login (must succeed)', async () => {
-      await login(page, sender.account.id, sender.account.password);
+    const loginForm = await test.step('Input: fill the login form', () => fillLoginForm(page, sender.account));
+
+    await test.step('Input: submit the login form', () => submitForm(loginForm));
+
+    await test.step('Expected output: login succeeds with the seeded account', async () => {
+      await expectLoggedIn(page);
       await expectAccountPage(page).toHaveBalance(sender.balance);
       await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
     });
 
     const historyBefore = await page.locator('.history-list').innerText();
 
-    const submission = await test.step('Input: submit the bill payment form', async () => {
-      if (categoryIsSelected) await waterCharge.check();
-      const amount = await fillBillPaymentForm(page, { amount: testCase.inputs.Amount });
-      // Without a category the browser stops at the category field, so that is the field to inspect.
-      return submitForm(page, { field: categoryIsSelected ? amount : waterCharge, confirm: 'bc' });
-    });
+    const billPaymentForm = await test.step('Input: fill the bill payment form', () =>
+      fillBillPaymentForm(page, {
+        amount: testCase.inputs.Amount,
+        category: categoryIsSelected ? 'b1' : undefined,
+      }),
+    );
+
+    const submission = await test.step('Input: submit the bill payment form', () => submitForm(billPaymentForm));
 
     if (categoryIsSelected) {
       await test.step('Expected output: bill payment is rejected with the specified message', () =>

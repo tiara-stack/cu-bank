@@ -3,7 +3,7 @@ import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-01-registration';
 import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
-import { fillRegistrationForm } from '../support/forms';
+import { fillRegistrationForm, submitForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
 import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../support/ui';
 
@@ -19,15 +19,16 @@ for (const testCase of cases) {
     });
     const dialogs = recordDialogs(page);
 
-    await test.step('Input: submit the registration form', async () => {
-      await fillRegistrationForm(page, {
+    const registrationForm = await test.step('Input: fill the registration form', () =>
+      fillRegistrationForm(page, {
         id: testCase.inputs['Account Number'],
         password: testCase.inputs.Password,
         firstName: testCase.inputs.Firstname,
         lastName: testCase.inputs.Lastname,
-      });
-      await page.getByTestId('rc').click();
-    });
+      }),
+    );
+
+    await test.step('Input: submit the registration form', () => submitForm(registrationForm));
 
     await test.step('Expected output: error message, still on Register, no success alert', async () => {
       const error = page.getByTestId('register-error-mes');

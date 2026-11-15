@@ -36,10 +36,10 @@ directly, using the account definitions for its registration inputs.
 | [fixtures.ts](support/fixtures.ts) | `test` with one extra fixture, `openSession()`: a page in a fresh browser context, so a test can act as several customers. |
 | [preconditions.ts](support/preconditions.ts) | `prepareAccounts()`: empties the database, then registers, logs in and funds each account the case needs, through the UI. |
 | [database.ts](support/database.ts) | The only direct database access. `clearAccounts()` resets the system before each case because the application cannot delete accounts. |
-| [forms.ts](support/forms.ts) | Field entry for each form, using the application's `cid` attributes. |
-| [ui.ts](support/ui.ts) | `register`, `login`, `transact` for steps that must succeed; `expectAccountPage(page)` and `expectAccountUnchanged` for state checks. |
+| [forms.ts](support/forms.ts) | Each `fill…Form()` helper fills fields and returns the form's validation field and confirmation button. `submitForm()` records native validation, clicks the button and returns observations for expected-output checks. |
+| [ui.ts](support/ui.ts) | `expectLoggedIn`, `expectTransaction`, `expectAccountPage` and `expectAccountUnchanged` check outputs. `register`, `login` and `transact` compose input and checks for account setup and verification in separate sessions. |
 | [evidence.ts](support/evidence.ts) | `captureActualOutput()`: attaches a screenshot named `actual-output` to the case; the report uses it as the Actual Output. |
-| [rejections.ts](support/rejections.ts) | `submitForm()`: the input, records the browser's own validation of the field and clicks Confirm. `expectRejection()`: the expected output, checks the specified error message, or reports that the browser blocked the form. |
+| [rejections.ts](support/rejections.ts) | `expectRejection()` checks the specified error message using the submission's recorded validation, or reports that the browser blocked the form. |
 
 ## Setup
 
@@ -77,8 +77,10 @@ These URLs are the ones the application hard-codes for its API and CORS settings
 
 1. **Pre-condition.** `prepareAccounts` empties the database and builds the case's account state through the UI,
    each account in its own browser context. The test itself then starts signed out in a fresh context.
-2. **Thread.** Steps that must succeed (`login`, `transact`) verify their own output before the next step, so a case
-   stops as soon as the system is not in the state the next step needs.
+2. **Input.** Each form has a fill step using `fill…Form()` and a separate submit step using `submitForm()`.
+   Successful and rejected actions use the same helpers. Every successful prefix action has a following
+   `Expected output` step that checks its result before the next action starts. Bill-category selection is
+   checked between filling and submitting, before a successful payment reloads the page.
 3. **Expected output.** A rejected step is checked against the workbook's message, character for character. This
    check is a soft assertion: a wording mismatch fails the case, and the case still goes on to check the state.
 4. **Post-condition.** The page is reloaded and the balance and history are compared with the expected values.

@@ -3,7 +3,7 @@ import { expectedAccountsFor } from '../data/account-outcome';
 import { cases } from '../data/scenarios/scenario-02-login';
 import { withActualOutput } from '../support/evidence';
 import { expect, test } from '../support/fixtures';
-import { fillLoginForm } from '../support/forms';
+import { fillLoginForm, submitForm } from '../support/forms';
 import { prepareAccounts } from '../support/preconditions';
 import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../support/ui';
 
@@ -19,13 +19,14 @@ for (const testCase of cases) {
     });
     const dialogs = recordDialogs(page);
 
-    await test.step('Input: submit the login form', async () => {
-      await fillLoginForm(page, {
+    const loginForm = await test.step('Input: fill the login form', () =>
+      fillLoginForm(page, {
         id: testCase.inputs['Account Number'],
         password: testCase.inputs.Password,
-      });
-      await page.getByTestId('lc').click();
-    });
+      }),
+    );
+
+    await test.step('Input: submit the login form', () => submitForm(loginForm));
 
     await test.step('Expected output: error message, still on Login', async () => {
       const error = page.getByTestId('login-error-mes');
