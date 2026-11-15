@@ -6,8 +6,8 @@ import type { TestCase } from '../test-case';
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S3-TC01',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 3,
     details: {
       tag: ['@demo', '@deposit-rejection'],
@@ -36,8 +36,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S3-TC02',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 3,
     details: {
       tag: ['@variant', '@deposit-rejection'],
@@ -66,8 +66,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S3-TC03',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 3,
     details: {
       tag: ['@variant', '@deposit-rejection'],
@@ -96,8 +96,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S3-TC04',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 3,
     details: {
       tag: ['@variant', '@deposit-rejection'],

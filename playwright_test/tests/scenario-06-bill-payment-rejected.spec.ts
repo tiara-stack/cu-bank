@@ -15,10 +15,10 @@ import {
 
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
-    const { sender } = testCase.accountState.accounts;
+    const { sender } = testCase.precondition.accounts;
     const expected = expectedAccountsFor({
-      state: testCase.accountState,
-      outcome: testCase.accountOutcome,
+      precondition: testCase.precondition,
+      postcondition: testCase.postcondition,
     });
     const categoryIsSelected = testCase.details.tag.includes('@bill-category-selected');
     const waterCharge = page.getByTestId('b1');

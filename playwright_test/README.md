@@ -8,7 +8,7 @@ demo cases, one per scenario, carry the `@demo` tag.
 
 | Folder                           | Contents                                                                                                                                                                                |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [data/scenarios](data/scenarios) | One file per scenario: every case's ID, inputs, expected message, account pre-condition (`accountState`) and expected result (`accountOutcome`).                                        |
+| [data/scenarios](data/scenarios) | One file per scenario: every case's ID, inputs, expected message, account pre-condition (`precondition`) and expected result (`postcondition`).                                         |
 | [tests](tests)                   | One spec per scenario. It loops over the scenario's cases and runs each as `test.step`s in the order of the test-case template: pre-condition, inputs, expected output, post-condition. |
 | [support](support)               | Helpers the specs share (see below).                                                                                                                                                    |
 
