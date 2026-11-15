@@ -23,10 +23,10 @@ import {
 
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
-    const { sender, recipient } = testCase.accountState.accounts;
+    const { sender, recipient } = testCase.precondition.accounts;
     const expected = expectedAccountsFor({
-      state: testCase.accountState,
-      outcome: testCase.accountOutcome,
+      precondition: testCase.precondition,
+      postcondition: testCase.postcondition,
     });
     await test.step('Pre-condition: recipient exists, visitor is signed out on Register', async () => {
       await prepareAccounts({ openSession, testCase });

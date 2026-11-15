@@ -9,10 +9,10 @@ import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../sup
 
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
-    const { sender } = testCase.accountState.accounts;
+    const { sender } = testCase.precondition.accounts;
     const expected = expectedAccountsFor({
-      state: testCase.accountState,
-      outcome: testCase.accountOutcome,
+      precondition: testCase.precondition,
+      postcondition: testCase.postcondition,
     });
     await test.step('Pre-condition: account A exists, visitor is signed out on Register', async () => {
       await prepareAccounts({ openSession, testCase });

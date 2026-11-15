@@ -6,8 +6,8 @@ import type { TestCase } from '../test-case';
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S2-TC01',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@demo', '@login-rejection'],
@@ -37,8 +37,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC02',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -68,8 +68,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC03',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -99,8 +99,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC04',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -130,8 +130,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC05',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -161,8 +161,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC06',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -192,8 +192,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC07',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],
@@ -223,8 +223,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S2-TC08',
-    accountState: senderOnly,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: senderOnly,
+    postcondition: unchangedAccountOutcome,
     scenario: 2,
     details: {
       tag: ['@variant', '@login-rejection'],

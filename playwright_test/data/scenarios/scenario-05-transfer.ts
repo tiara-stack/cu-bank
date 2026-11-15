@@ -4,7 +4,7 @@ import { senderAndRecipient } from '../account-state';
 import type { TestCase } from '../test-case';
 
 // The successful deposit and withdrawal prefixes run before the rejected transfer.
-const accountOutcome: AccountOutcome = {
+const postcondition: AccountOutcome = {
   kind: 'unchanged',
   accounts: {
     sender: {
@@ -31,8 +31,8 @@ const accountOutcome: AccountOutcome = {
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S5-TC01',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@demo', '@transfer-rejection'],
@@ -62,8 +62,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC02',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -93,8 +93,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC03',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -124,8 +124,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC04',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -155,8 +155,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC05',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -186,8 +186,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC06',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -217,8 +217,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC07',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -248,8 +248,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC08',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -279,8 +279,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC09',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -310,8 +310,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC10',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],
@@ -341,8 +341,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S5-TC11',
-    accountState: senderAndRecipient,
-    accountOutcome: accountOutcome,
+    precondition: senderAndRecipient,
+    postcondition,
     scenario: 5,
     details: {
       tag: ['@variant', '@transfer-rejection'],

@@ -16,18 +16,18 @@ export async function prepareAccounts({
   testCase,
 }: {
   openSession: () => Promise<Page>;
-  testCase: Pick<TestCase, 'accountState' | 'accountOutcome'>;
+  testCase: Pick<TestCase, 'precondition' | 'postcondition'>;
 }) {
-  const { accountState, accountOutcome } = testCase;
+  const { precondition, postcondition } = testCase;
   await test.info().attach('account-preconditions', {
-    body: JSON.stringify(accountState, null, 2),
+    body: JSON.stringify(precondition, null, 2),
     contentType: 'application/json',
   });
   await test.info().attach('account-outcome', {
     body: JSON.stringify(
       {
-        kind: accountOutcome.kind,
-        accounts: expectedAccountsFor({ state: accountState, outcome: accountOutcome }),
+        kind: postcondition.kind,
+        accounts: expectedAccountsFor({ precondition, postcondition }),
       },
       null,
       2,
@@ -35,7 +35,7 @@ export async function prepareAccounts({
     contentType: 'application/json',
   });
   await clearAccounts();
-  for (const account of Object.values(accountState.accounts)) {
+  for (const account of Object.values(precondition.accounts)) {
     if (account.exists !== false)
       await seedAccount({ page: await openSession(), precondition: account });
   }

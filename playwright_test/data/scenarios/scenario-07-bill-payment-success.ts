@@ -5,8 +5,8 @@ import type { TestCase } from '../test-case';
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S7-TC01',
-    accountState: fundedSender,
-    accountOutcome: {
+    precondition: fundedSender,
+    postcondition: {
       kind: 'updated',
       accounts: {
         sender: {
@@ -58,8 +58,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S7-TC02',
-    accountState: fundedSender,
-    accountOutcome: {
+    precondition: fundedSender,
+    postcondition: {
       kind: 'updated',
       accounts: {
         sender: {
@@ -111,8 +111,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S7-TC03',
-    accountState: fundedSender,
-    accountOutcome: {
+    precondition: fundedSender,
+    postcondition: {
       kind: 'updated',
       accounts: {
         sender: {

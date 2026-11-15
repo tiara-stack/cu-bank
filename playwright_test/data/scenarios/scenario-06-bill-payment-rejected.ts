@@ -6,8 +6,8 @@ import type { TestCase } from '../test-case';
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S6-TC01',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@demo', '@bill-payment-rejection', '@bill-category-selected'],
@@ -37,8 +37,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC02',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-selected'],
@@ -68,8 +68,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC03',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-selected'],
@@ -99,8 +99,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC04',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-selected'],
@@ -130,8 +130,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC05',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-selected'],
@@ -161,8 +161,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC06',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-selected'],
@@ -192,8 +192,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S6-TC07',
-    accountState: fundedSender,
-    accountOutcome: unchangedAccountOutcome,
+    precondition: fundedSender,
+    postcondition: unchangedAccountOutcome,
     scenario: 6,
     details: {
       tag: ['@variant', '@bill-payment-rejection', '@bill-category-required'],

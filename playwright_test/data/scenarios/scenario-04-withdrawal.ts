@@ -4,7 +4,7 @@ import { senderOnly } from '../account-state';
 import type { TestCase } from '../test-case';
 
 // The successful deposit prefix runs before the rejected withdrawal.
-const accountOutcome: AccountOutcome = {
+const postcondition: AccountOutcome = {
   kind: 'unchanged',
   accounts: {
     sender: {
@@ -25,8 +25,8 @@ const accountOutcome: AccountOutcome = {
 export const cases: ReadonlyArray<TestCase> = [
   {
     id: 'S4-TC01',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@demo', '@withdrawal-rejection'],
@@ -55,8 +55,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S4-TC02',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@variant', '@withdrawal-rejection'],
@@ -85,8 +85,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S4-TC03',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@variant', '@withdrawal-rejection'],
@@ -115,8 +115,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S4-TC04',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@variant', '@withdrawal-rejection'],
@@ -145,8 +145,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S4-TC05',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@variant', '@withdrawal-rejection'],
@@ -175,8 +175,8 @@ export const cases: ReadonlyArray<TestCase> = [
   },
   {
     id: 'S4-TC06',
-    accountState: senderOnly,
-    accountOutcome: accountOutcome,
+    precondition: senderOnly,
+    postcondition,
     scenario: 4,
     details: {
       tag: ['@variant', '@withdrawal-rejection'],

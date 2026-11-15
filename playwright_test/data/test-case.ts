@@ -25,8 +25,8 @@ export type TestCase = {
   scenario: number;
   details: CaseDetails;
   title: string;
-  accountState: AccountState;
-  accountOutcome: AccountOutcome;
+  precondition: AccountState;
+  postcondition: AccountOutcome;
   inputs: Readonly<Record<string, string>>;
   message: string | null;
 };
