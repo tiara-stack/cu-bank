@@ -24,7 +24,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm start',
+    command: 'pnpm run start',
     cwd: fileURLToPath(new URL('../frontend', import.meta.url)),
     url: 'http://localhost:3000',
     reuseExistingServer: false,

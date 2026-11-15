@@ -11,10 +11,13 @@ import type { TestCase } from '../data/test-case';
  * empty database -> Register -> Login -> Deposit(s), once per account that must exist.
  * Accounts marked `exists: false` are left absent.
  */
-export async function prepareAccounts(
-  openSession: () => Promise<Page>,
-  testCase: Pick<TestCase, 'accountState' | 'accountOutcome'>,
-) {
+export async function prepareAccounts({
+  openSession,
+  testCase,
+}: {
+  openSession: () => Promise<Page>;
+  testCase: Pick<TestCase, 'accountState' | 'accountOutcome'>;
+}) {
   const { accountState, accountOutcome } = testCase;
   await test.info().attach('account-preconditions', {
     body: JSON.stringify(accountState, null, 2),
@@ -22,32 +25,48 @@ export async function prepareAccounts(
   });
   await test.info().attach('account-outcome', {
     body: JSON.stringify(
-      { kind: accountOutcome.kind, accounts: expectedAccountsFor(accountState, accountOutcome) },
+      {
+        kind: accountOutcome.kind,
+        accounts: expectedAccountsFor({ state: accountState, outcome: accountOutcome }),
+      },
       null,
       2,
     ),
     contentType: 'application/json',
   });
-
   await clearAccounts();
   for (const account of Object.values(accountState.accounts)) {
-    if (account.exists !== false) await seedAccount(await openSession(), account);
+    if (account.exists !== false)
+      await seedAccount({ page: await openSession(), precondition: account });
   }
 }
 
-async function seedAccount(page: Page, { account, balance, deposits }: AccountPrecondition) {
-  await register(page, account);
-  await login(page, account.id, account.password);
-  await expectAccountPage(page).toHaveBalance(0);
-  await expectAccountPage(page).toHaveHistoryCount(0);
-
-  const history = depositHistory(deposits);
+async function seedAccount({
+  page,
+  precondition,
+}: {
+  page: Page;
+  precondition: AccountPrecondition;
+}) {
+  const { account, balance, deposits } = precondition;
+  await register({ page, account });
+  await login({ page, account });
+  await expectAccountPage({ page }).toHaveBalance({ balance: 0 });
+  await expectAccountPage({ page }).toHaveHistoryCount({ count: 0 });
+  const history = depositHistory({ deposits });
   for (const [index, deposit] of history.entries()) {
-    await transact(page, 'deposit', deposit.amount, deposit.balance, index + 1);
+    await transact({
+      page,
+      action: 'deposit',
+      amount: deposit.amount,
+      balance: deposit.balance,
+      historyCount: index + 1,
+    });
   }
-
-  await expectAccountPage(page).toHaveBalance(balance);
-  await expectAccountPage(page).toHaveHistoryCount(history.length);
-  await expectAccountPage(page).toHaveHistory(history);
-  await expectAccountPage(page).toHaveName(`${account.firstName} ${account.lastName}`);
+  await expectAccountPage({ page }).toHaveBalance({ balance });
+  await expectAccountPage({ page }).toHaveHistoryCount({ count: history.length });
+  await expectAccountPage({ page }).toHaveHistory({ transactions: history });
+  await expectAccountPage({ page }).toHaveName({
+    name: `${account.firstName} ${account.lastName}`,
+  });
 }

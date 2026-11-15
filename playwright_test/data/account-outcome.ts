@@ -13,7 +13,9 @@ export type AccountExpectation = {
   transactions: ReadonlyArray<TransactionExpectation>;
 };
 
-export type ExpectedAccount = AccountExpectation & { accountId: string };
+export type ExpectedAccount = AccountExpectation & {
+  accountId: string;
+};
 
 export type ExpectedAccounts = Readonly<Record<string, ExpectedAccount>>;
 
@@ -24,7 +26,11 @@ export type AccountOutcome = {
 
 export const unchangedAccountOutcome: AccountOutcome = { kind: 'unchanged', accounts: {} };
 
-export function depositHistory(deposits: ReadonlyArray<number>): TransactionExpectation[] {
+export function depositHistory({
+  deposits,
+}: {
+  deposits: ReadonlyArray<number>;
+}): TransactionExpectation[] {
   const history: TransactionExpectation[] = [];
   let balance = 0;
   for (const amount of deposits) {
@@ -34,7 +40,13 @@ export function depositHistory(deposits: ReadonlyArray<number>): TransactionExpe
   return history;
 }
 
-export function expectedAccountsFor(state: AccountState, outcome: AccountOutcome): ExpectedAccounts {
+export function expectedAccountsFor({
+  state,
+  outcome,
+}: {
+  state: AccountState;
+  outcome: AccountOutcome;
+}): ExpectedAccounts {
   const expected: Record<string, ExpectedAccount> = {};
   for (const [role, precondition] of Object.entries(state.accounts)) {
     if (precondition.exists === false) continue;
@@ -43,7 +55,7 @@ export function expectedAccountsFor(state: AccountState, outcome: AccountOutcome
       accountId: account.id,
       name: `${account.firstName} ${account.lastName}`,
       balance,
-      transactions: depositHistory(deposits),
+      transactions: depositHistory({ deposits }),
     };
   }
   for (const [role, result] of Object.entries(outcome.accounts)) {

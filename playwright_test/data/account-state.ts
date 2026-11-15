@@ -1,4 +1,11 @@
-import { type Account, accountA, accountB, boundaryCustomer, newCustomer, unregisteredAccount } from './account';
+import {
+  type Account,
+  accountA,
+  accountB,
+  boundaryCustomer,
+  newCustomer,
+  unregisteredAccount,
+} from './account';
 
 /** One account's state before a case. `exists: false` leaves its registration to the test. */
 export type AccountPrecondition = {

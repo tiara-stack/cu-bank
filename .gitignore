@@ -8,6 +8,7 @@
 .direnv/
 
 # Dependencies and generated output
+/.worktrees
 node_modules/
 jspm_packages/
 build/
