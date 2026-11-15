@@ -16,28 +16,30 @@ const categoryRadio: Record<string, string> = {
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
     const { sender } = testCase.accountState.accounts;
-    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
+    const expected = expectedAccountsFor({
+      state: testCase.accountState,
+      outcome: testCase.accountOutcome,
+    });
     const selected = categoryRadio[testCase.inputs['Target Payment']];
-
     await test.step('Pre-condition: seed accounts, signed out on Login', async () => {
-      await prepareAccounts(openSession, testCase);
+      await prepareAccounts({ openSession, testCase });
       await page.goto('/');
-      await expectSignedOut(page);
+      await expectSignedOut({ page });
     });
 
-    const loginForm = await test.step('Input: fill the login form', () => fillLoginForm(page, sender.account));
+    const loginForm = await test.step('Input: fill the login form', () =>
+      fillLoginForm({ page, account: sender.account }));
 
-    await test.step('Input: submit the login form', () => submitForm(loginForm));
+    await test.step('Input: submit the login form', () => submitForm({ form: loginForm }));
 
     await test.step('Expected output: login succeeds with the seeded account', async () => {
-      await expectLoggedIn(page);
-      await expectAccountPage(page).toHaveBalance(sender.balance);
-      await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
+      await expectLoggedIn({ page });
+      await expectAccountPage({ page }).toHaveBalance({ balance: sender.balance });
+      await expectAccountPage({ page }).toHaveHistoryCount({ count: sender.deposits.length });
     });
 
     const billPaymentForm = await test.step('Input: fill the bill payment form', () =>
-      fillBillPaymentForm(page, { category: selected, amount: testCase.inputs.Amount }),
-    );
+      fillBillPaymentForm({ page, category: selected, amount: testCase.inputs.Amount }));
 
     await test.step('Expected output: exactly one bill category is selected', async () => {
       for (const radio of Object.values(categoryRadio)) {
@@ -45,15 +47,19 @@ for (const testCase of cases) {
       }
     });
 
-    await test.step('Input: submit the bill payment form', () => submitForm(billPaymentForm));
+    await test.step('Input: submit the bill payment form', () =>
+      submitForm({ form: billPaymentForm }));
 
     await test.step('Expected output: balance reduced, one new history record', async () => {
-      await withActualOutput(page, () => expectAccountPage(page).toShow(expected.sender));
+      await withActualOutput({
+        page,
+        check: () => expectAccountPage({ page }).toShow({ account: expected.sender }),
+      });
     });
 
     await test.step('Post-condition: the result survives a reload', async () => {
       await page.reload();
-      await expectAccountPage(page).toShow(expected.sender);
+      await expectAccountPage({ page }).toShow({ account: expected.sender });
     });
   });
 }

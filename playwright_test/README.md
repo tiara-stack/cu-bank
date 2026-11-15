@@ -6,11 +6,11 @@ demo cases, one per scenario, carry the `@demo` tag.
 
 ## Layout
 
-| Folder | Contents |
-| --- | --- |
-| [data/scenarios](data/scenarios) | One file per scenario: every case's ID, inputs, expected message, account pre-condition (`accountState`) and expected result (`accountOutcome`). |
-| [tests](tests) | One spec per scenario. It loops over the scenario's cases and runs each as `test.step`s in the order of the test-case template: pre-condition, inputs, expected output, post-condition. |
-| [support](support) | Helpers the specs share (see below). |
+| Folder                           | Contents                                                                                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [data/scenarios](data/scenarios) | One file per scenario: every case's ID, inputs, expected message, account pre-condition (`accountState`) and expected result (`accountOutcome`).                                        |
+| [tests](tests)                   | One spec per scenario. It loops over the scenario's cases and runs each as `test.step`s in the order of the test-case template: pre-condition, inputs, expected output, post-condition. |
+| [support](support)               | Helpers the specs share (see below).                                                                                                                                                    |
 
 [data/account.ts](data/account.ts) defines named accounts with an `id`, password and registration names.
 `AccountPrecondition` in [data/account-state.ts](data/account-state.ts) pairs an `account` with its starting
@@ -18,32 +18,32 @@ balance, setup deposits and existence flag. States refer to named IDs such as `n
 `unregisteredAccount.id`. Scenario 8 selects `newCustomerAndRecipient` or `boundaryCustomerAndRecipient`
 directly, using the account definitions for its registration inputs.
 
-| Scenario | Case data | Spec |
-| --- | --- | --- |
-| 1. Registration rejected | [Cases](data/scenarios/scenario-01-registration.ts) | [Spec](tests/scenario-01-registration.spec.ts) |
-| 2. Login rejected | [Cases](data/scenarios/scenario-02-login.ts) | [Spec](tests/scenario-02-login.spec.ts) |
-| 3. Deposit rejected | [Cases](data/scenarios/scenario-03-deposit.ts) | [Spec](tests/scenario-03-deposit.spec.ts) |
-| 4. Withdrawal rejected | [Cases](data/scenarios/scenario-04-withdrawal.ts) | [Spec](tests/scenario-04-withdrawal.spec.ts) |
-| 5. Transfer rejected | [Cases](data/scenarios/scenario-05-transfer.ts) | [Spec](tests/scenario-05-transfer.spec.ts) |
-| 6. Bill payment rejected | [Cases](data/scenarios/scenario-06-bill-payment-rejected.ts) | [Spec](tests/scenario-06-bill-payment-rejected.spec.ts) |
-| 7. Bill payment succeeds | [Cases](data/scenarios/scenario-07-bill-payment-success.ts) | [Spec](tests/scenario-07-bill-payment-success.spec.ts) |
-| 8. Registration-to-transfer journey | [Cases](data/scenarios/scenario-08-registration-journey.ts) | [Spec](tests/scenario-08-registration-journey.spec.ts) |
+| Scenario                            | Case data                                                    | Spec                                                    |
+| ----------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| 1. Registration rejected            | [Cases](data/scenarios/scenario-01-registration.ts)          | [Spec](tests/scenario-01-registration.spec.ts)          |
+| 2. Login rejected                   | [Cases](data/scenarios/scenario-02-login.ts)                 | [Spec](tests/scenario-02-login.spec.ts)                 |
+| 3. Deposit rejected                 | [Cases](data/scenarios/scenario-03-deposit.ts)               | [Spec](tests/scenario-03-deposit.spec.ts)               |
+| 4. Withdrawal rejected              | [Cases](data/scenarios/scenario-04-withdrawal.ts)            | [Spec](tests/scenario-04-withdrawal.spec.ts)            |
+| 5. Transfer rejected                | [Cases](data/scenarios/scenario-05-transfer.ts)              | [Spec](tests/scenario-05-transfer.spec.ts)              |
+| 6. Bill payment rejected            | [Cases](data/scenarios/scenario-06-bill-payment-rejected.ts) | [Spec](tests/scenario-06-bill-payment-rejected.spec.ts) |
+| 7. Bill payment succeeds            | [Cases](data/scenarios/scenario-07-bill-payment-success.ts)  | [Spec](tests/scenario-07-bill-payment-success.spec.ts)  |
+| 8. Registration-to-transfer journey | [Cases](data/scenarios/scenario-08-registration-journey.ts)  | [Spec](tests/scenario-08-registration-journey.spec.ts)  |
 
 ### Support helpers
 
-| File | What it provides |
-| --- | --- |
-| [fixtures.ts](support/fixtures.ts) | `test` with one extra fixture, `openSession()`: a page in a fresh browser context, so a test can act as several customers. |
-| [preconditions.ts](support/preconditions.ts) | `prepareAccounts()`: empties the database, then registers, logs in and funds each account the case needs, through the UI. |
-| [database.ts](support/database.ts) | The only direct database access. `clearAccounts()` resets the system before each case because the application cannot delete accounts. |
-| [forms.ts](support/forms.ts) | Each `fill…Form()` helper fills fields and returns the form's validation field and confirmation button. `submitForm()` records native validation, clicks the button and returns observations for expected-output checks. |
-| [ui.ts](support/ui.ts) | `expectLoggedIn`, `expectTransaction`, `expectAccountPage` and `expectAccountUnchanged` check outputs. `register`, `login` and `transact` compose input and checks for account setup and verification in separate sessions. |
-| [evidence.ts](support/evidence.ts) | `captureActualOutput()`: attaches a screenshot named `actual-output` to the case; the report uses it as the Actual Output. |
-| [rejections.ts](support/rejections.ts) | `expectRejection()` checks the specified error message using the submission's recorded validation, or reports that the browser blocked the form. |
+| File                                         | What it provides                                                                                                                                                                                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [fixtures.ts](support/fixtures.ts)           | `test` with one extra fixture, `openSession()`: a page in a fresh browser context, so a test can act as several customers.                                                                                                  |
+| [preconditions.ts](support/preconditions.ts) | `prepareAccounts()`: empties the database, then registers, logs in and funds each account the case needs, through the UI.                                                                                                   |
+| [database.ts](support/database.ts)           | The only direct database access. `clearAccounts()` resets the system before each case because the application cannot delete accounts.                                                                                       |
+| [forms.ts](support/forms.ts)                 | Each `fill…Form()` helper fills fields and returns the form's validation field and confirmation button. `submitForm()` records native validation, clicks the button and returns observations for expected-output checks.    |
+| [ui.ts](support/ui.ts)                       | `expectLoggedIn`, `expectTransaction`, `expectAccountPage` and `expectAccountUnchanged` check outputs. `register`, `login` and `transact` compose input and checks for account setup and verification in separate sessions. |
+| [evidence.ts](support/evidence.ts)           | `captureActualOutput()`: attaches a screenshot named `actual-output` to the case; the report uses it as the Actual Output.                                                                                                  |
+| [rejections.ts](support/rejections.ts)       | `expectRejection()` checks the specified error message using the submission's recorded validation, or reports that the browser blocked the form.                                                                            |
 
 ## Setup
 
-Use Node.js 22 or later. From the repository root:
+Use Node.js 22.18+ or 24.11+ LTS. From the repository root:
 
 ```bash
 npm ci --prefix frontend
@@ -65,7 +65,26 @@ npm run test:demo               # the 8 @demo cases, about 1.5 minutes
 npm run test:demo -- --headed   # the same, with a visible browser
 npm test -- --grep S5-TC01      # one case
 npm run report                  # open the HTML report
-npm run check                   # TypeScript and dead-code checks
+npm run check                   # formatting, TypeScript and dead-code checks
+```
+
+Vite Plus is installed in this package. Run formatting commands inside `playwright_test`.
+
+```bash
+npm run format                 # apply formatting
+npm run format:check           # check formatting
+```
+
+[vite.config.ts](vite.config.ts) defines the shared formatting options. `npm run check` checks
+formatting, TypeScript and dead code. Generated reports, dependencies and the package lockfile are
+excluded from formatting. See the [Vite Plus formatting guide](https://viteplus.dev/guide/fmt).
+
+Support helpers accept named object arguments, including account matchers.
+
+```ts
+const form = await fillLoginForm({ page, account: sender.account });
+await submitForm({ form });
+await expectAccountPage({ page }).toHaveBalance({ balance: 1000 });
 ```
 
 Ports 3000 and 4000 must be free: Playwright starts the React frontend on `http://localhost:3000`, and global setup

@@ -16,46 +16,56 @@ import {
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
     const { sender } = testCase.accountState.accounts;
-    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
-
+    const expected = expectedAccountsFor({
+      state: testCase.accountState,
+      outcome: testCase.accountOutcome,
+    });
     await test.step('Pre-condition: seed accounts, signed out on Login', async () => {
-      await prepareAccounts(openSession, testCase);
+      await prepareAccounts({ openSession, testCase });
       await page.goto('/');
-      await expectSignedOut(page);
+      await expectSignedOut({ page });
     });
 
-    const loginForm = await test.step('Input: fill the login form', () => fillLoginForm(page, sender.account));
+    const loginForm = await test.step('Input: fill the login form', () =>
+      fillLoginForm({ page, account: sender.account }));
 
-    await test.step('Input: submit the login form', () => submitForm(loginForm));
+    await test.step('Input: submit the login form', () => submitForm({ form: loginForm }));
 
     await test.step('Expected output: login succeeds with the seeded account', async () => {
-      await expectLoggedIn(page);
-      await expectAccountPage(page).toHaveBalance(sender.balance);
-      await expectAccountPage(page).toHaveHistoryCount(sender.deposits.length);
+      await expectLoggedIn({ page });
+      await expectAccountPage({ page }).toHaveBalance({ balance: sender.balance });
+      await expectAccountPage({ page }).toHaveHistoryCount({ count: sender.deposits.length });
     });
 
-    const depositForm = await test.step('Input: fill the deposit form with 1000', () => fillDepositForm(page, { amount: '1000' }));
+    const depositForm = await test.step('Input: fill the deposit form with 1000', () =>
+      fillDepositForm({ page, amount: '1000' }));
 
-    await test.step('Input: submit the deposit form', () => submitForm(depositForm));
+    await test.step('Input: submit the deposit form', () => submitForm({ form: depositForm }));
 
     await test.step('Expected output: deposit succeeds', () =>
-      expectTransaction(page, 'deposit', 1000, sender.balance + 1000, sender.deposits.length + 1),
-    );
+      expectTransaction({
+        page,
+        action: 'deposit',
+        amount: 1000,
+        balance: sender.balance + 1000,
+        historyCount: sender.deposits.length + 1,
+      }));
 
     const historyBefore = await page.locator('.history-list').innerText();
-
     const withdrawalForm = await test.step('Input: fill the withdrawal form', () =>
-      fillWithdrawalForm(page, { amount: testCase.inputs['Withdraw Amount'] }),
-    );
+      fillWithdrawalForm({ page, amount: testCase.inputs['Withdraw Amount'] }));
 
-    const submission = await test.step('Input: submit the withdrawal form', () => submitForm(withdrawalForm));
+    const submission = await test.step('Input: submit the withdrawal form', () =>
+      submitForm({ form: withdrawalForm }));
 
     await test.step('Expected output: withdrawal is rejected with the specified message', () =>
-      expectRejection(page, submission, { error: 'withdraw-error-mes', message: testCase.message }),
-    );
+      expectRejection({
+        page,
+        submission,
+        expected: { error: 'withdraw-error-mes', message: testCase.message },
+      }));
 
     await test.step('Post-condition: balance and history unchanged', () =>
-      expectAccountUnchanged(page, expected.sender, historyBefore),
-    );
+      expectAccountUnchanged({ page, account: expected.sender, historyBefore }));
   });
 }

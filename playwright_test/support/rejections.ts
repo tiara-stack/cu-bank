@@ -10,20 +10,28 @@ import type { Submission } from './forms';
  * verify that the rejected action changed nothing. When the browser blocks the submission
  * itself, the application message never appears; that is recorded and reported as a mismatch.
  */
-export async function expectRejection(
-  page: Page,
-  { field, validation }: Submission,
-  expected: { error: string; message: string | null },
-) {
-  if (expected.message === null) throw new Error('This case declares no expected rejection message.');
+export async function expectRejection({
+  page,
+  submission,
+  expected,
+}: {
+  page: Page;
+  submission: Submission;
+  expected: {
+    error: string;
+    message: string | null;
+  };
+}) {
+  const { field, validation } = submission;
+  if (expected.message === null)
+    throw new Error('This case declares no expected rejection message.');
   const error = page.getByTestId(expected.error);
-
   if (validation.valid) {
     await expect.soft(error).toHaveText(expected.message);
-    await captureActualOutput(page, error);
+    await captureActualOutput({ page, highlight: error });
     return;
   }
-  await withActualOutput(page, () => expect(field).toBeFocused(), field);
+  await withActualOutput({ page, check: () => expect(field).toBeFocused(), highlight: field });
   test.info().annotations.push({
     type: 'native validation',
     description: `Browser blocked submission. ${validation.validationMessage}`,

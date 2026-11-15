@@ -10,43 +10,48 @@ import { expectAccountPage, expectSignedOut, login, recordDialogs } from '../sup
 for (const testCase of cases) {
   test(`${testCase.id} ${testCase.title}`, testCase.details, async ({ page, openSession }) => {
     const { sender } = testCase.accountState.accounts;
-    const expected = expectedAccountsFor(testCase.accountState, testCase.accountOutcome);
-
-    await test.step('Pre-condition: account A exists, visitor is signed out on Register', async () => {
-      await prepareAccounts(openSession, testCase);
-      await page.goto('/register');
-      await expectSignedOut(page);
+    const expected = expectedAccountsFor({
+      state: testCase.accountState,
+      outcome: testCase.accountOutcome,
     });
-    const dialogs = recordDialogs(page);
+    await test.step('Pre-condition: account A exists, visitor is signed out on Register', async () => {
+      await prepareAccounts({ openSession, testCase });
+      await page.goto('/register');
+      await expectSignedOut({ page });
+    });
 
+    const dialogs = recordDialogs({ page });
     const registrationForm = await test.step('Input: fill the registration form', () =>
-      fillRegistrationForm(page, {
-        id: testCase.inputs['Account Number'],
-        password: testCase.inputs.Password,
-        firstName: testCase.inputs.Firstname,
-        lastName: testCase.inputs.Lastname,
-      }),
-    );
+      fillRegistrationForm({
+        page,
+        account: {
+          id: testCase.inputs['Account Number'],
+          password: testCase.inputs.Password,
+          firstName: testCase.inputs.Firstname,
+          lastName: testCase.inputs.Lastname,
+        },
+      }));
 
-    await test.step('Input: submit the registration form', () => submitForm(registrationForm));
+    await test.step('Input: submit the registration form', () =>
+      submitForm({ form: registrationForm }));
 
     await test.step('Expected output: error message, still on Register, no success alert', async () => {
       const error = page.getByTestId('register-error-mes');
       // Wait for the message before the screenshot, so the evidence shows it.
-      await withActualOutput(page, () => expect(error).toBeVisible(), error);
+      await withActualOutput({ page, check: () => expect(error).toBeVisible(), highlight: error });
       await expect.soft(error).toHaveText(testCase.message!);
       await expect(page).toHaveURL(/\/register$/);
-      await expectSignedOut(page);
+      await expectSignedOut({ page });
       expect(dialogs).toEqual([]);
     });
 
     await test.step('Post-condition: still signed out, account A unchanged', async () => {
       await page.reload();
-      await expectSignedOut(page);
+      await expectSignedOut({ page });
       const senderPage = await openSession();
-      await login(senderPage, sender.account.id, sender.account.password);
-      await expectAccountPage(senderPage).toShow(expected.sender);
-      await expectAccountPage(senderPage).toHaveName(expected.sender.name);
+      await login({ page: senderPage, account: sender.account });
+      await expectAccountPage({ page: senderPage }).toShow({ account: expected.sender });
+      await expectAccountPage({ page: senderPage }).toHaveName({ name: expected.sender.name });
     });
   });
 }
