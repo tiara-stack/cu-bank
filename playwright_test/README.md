@@ -43,14 +43,17 @@ directly, using the account definitions for its registration inputs.
 
 ## Setup
 
-Use Node.js 22.18+ or 24.11+ LTS. From the repository root:
+Use Node.js 22.18+ or 24.11+ LTS and pnpm 11.24.0, pinned in `package.json`. From the repository root:
 
 ```bash
+# Application dependencies
 npm ci --prefix frontend
 npm ci --prefix backend
+
+# Playwright tooling
 cd playwright_test
-npm ci
-npm run browsers:install      # on Linux, if needed: npx playwright install --with-deps chromium
+pnpm install --frozen-lockfile
+pnpm run browsers:install          # on Linux, if needed: pnpm exec playwright install --with-deps chromium
 ```
 
 The first run downloads a MongoDB server binary through `mongodb-memory-server`, so it needs network access.
@@ -60,22 +63,22 @@ The first run downloads a MongoDB server binary through `mongodb-memory-server`,
 Inside `playwright_test`:
 
 ```bash
-npm test                        # all 49 cases, about 7 minutes
-npm run test:demo               # the 8 @demo cases, about 1.5 minutes
-npm run test:demo -- --headed   # the same, with a visible browser
-npm test -- --grep S5-TC01      # one case
-npm run report                  # open the HTML report
-npm run check                   # formatting, TypeScript and dead-code checks
+pnpm test                          # all 49 cases, about 7 minutes
+pnpm run test:demo                 # the 8 @demo cases, about 1.5 minutes
+pnpm run test:demo --headed        # the same, with a visible browser
+pnpm test --grep S5-TC01           # one case
+pnpm run report                    # open the HTML report
+pnpm run check                     # formatting, TypeScript and dead-code checks
 ```
 
 Vite Plus is installed in this package. Run formatting commands inside `playwright_test`.
 
 ```bash
-npm run format                 # apply formatting
-npm run format:check           # check formatting
+pnpm run format                    # apply formatting
+pnpm run format:check              # check formatting
 ```
 
-[vite.config.ts](vite.config.ts) defines the shared formatting options. `npm run check` checks
+[vite.config.ts](vite.config.ts) defines the shared formatting options. `pnpm run check` checks
 formatting, TypeScript and dead code. Generated reports, dependencies and the package lockfile are
 excluded from formatting. See the [Vite Plus formatting guide](https://viteplus.dev/guide/fmt).
 
@@ -107,7 +110,7 @@ These URLs are the ones the application hard-codes for its API and CORS settings
 
 ## Results
 
-`npm run report` opens the HTML report; `test-results/results.json` has the same results in machine-readable form.
+`pnpm run report` opens the HTML report; `test-results/results.json` has the same results in machine-readable form.
 Failed cases keep screenshots, video and a trace. Each case attaches its account pre-condition, its expected outcome,
 a screenshot of the actual output and, for amount fields, the browser's validation state. Step names start with the
 field of the test-case template they belong to: `Pre-condition`, `Input`, `Expected output`, `Post-condition`.

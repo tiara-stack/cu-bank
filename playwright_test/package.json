@@ -16,7 +16,7 @@
     "browsers:install": "playwright install chromium",
     "typecheck": "tsc --noEmit",
     "lint": "fallow dead-code",
-    "check": "npm run format:check && npm run typecheck && npm run lint"
+    "check": "pnpm run format:check && pnpm run typecheck && pnpm run lint"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",
@@ -29,5 +29,6 @@
   },
   "engines": {
     "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
-  }
+  },
+  "packageManager": "pnpm@11.24.0"
 }
